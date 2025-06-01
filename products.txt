@@ -1,0 +1,7 @@
+1001,aaaa,category a,size,color,10.00
+1002,eeee,category b,size,color,20.00
+1003,dddd,category c,size,color,30.00
+1004,bbbb,category d,size,color,40.00
+1005,ffff,category e,size,color,50.00
+1006,cccc,category f,size,color,60.00
+1007,new,newew,newn,nenw,98.00
