@@ -1,7 +1,50 @@
-1001,aaaa,category a,size,color,10.00
-1002,eeee,category b,size,color,20.00
-1003,dddd,category c,size,color,30.00
-1004,bbbb,category d,size,color,40.00
-1005,ffff,category e,size,color,50.00
-1006,cccc,category f,size,color,60.00
-1007,new,newew,newn,nenw,98.00
+1001,Classic Swim Trunks,Men,XL,Black,39.90
+1002,Classic Swim Trunks,Men,L,Navy,39.90
+1003,Classic Swim Trunks,Men,M,Navy,39.90
+1004,Board Shorts,Men,L,Blue/White,44.90
+1005,Rash Guard (Short Sleeve),Men,XL,Black,54.90
+1006,Jammers (Swim Briefs),Men,XL,Blue,47.90
+1007,Jammers (Swim Briefs),Men,M,Blue,47.90
+1008,Surf Shorts,Men,L,Gray,49.90
+1009,Mesh Cover-Up Dress,Women,S,Beige,39.90
+1010,Swim Boxers,Men,XL,Dark Green,36.90
+1011,Long-Sleeve Rash Guard,Unisex,M,Blue,59.90
+1012,Long-Sleeve Rash Guard,Unisex,L,Blue,59.90
+1013,Quick-Dry Swim Shirt,Men,XL,White,45.90
+1014,Quick-Dry Swim Shirt,Men,M,White,45.90
+1015,Patterned Swim Trunks,Men,XL,Tropical,49.90
+1016,Hybrid Swim Shorts,Men,M,Black/Blue,54.90
+1017,UV Protection Swim Top,Unisex,L,Black,49.90
+1018,UV Protection Swim Top,Unisex,L,Gray,49.90
+1019,Drawstring Swim Shorts,Men,L,Olive,39.90
+1020,Drawstring Swim Shorts,Men,XL,Olive,39.90
+1021,Performance Swim Jammers,Men,M,Black,64.90
+1022,Beach Polo Shirt,Men,XL,White,47.90
+1023,Beach Polo Shirt,Men,L,White,47.90
+1024,Beach Polo Shirt,Men,L,Black,47.90
+1025,Quick-Dry Swim Trunks,Men,XL,Charcoal,44.90
+1026,Swim Leggings,Women,L,Black,52.90
+1027,Tie-Dye Board Shorts,Men,M,Multicolor,49.90
+1028,Wetsuit Shorts,Men,M,Black,74.90
+1029,Wetsuit Shorts,Men,L,Black,74.90
+1030,Cropped Swim Top,Women,S,Striped,34.90
+1031,Loose Fit Swim Shorts,Men,M,Light Gray,44.90
+1032,Loose Fit Swim Shorts,Men,XL,Light Gray,44.90
+1033,Neon Swim Trunks,Men,L,Black,47.90
+1034,Neon Swim Trunks,Men,L,Neon Yellow,47.90
+1035,Long Board Shorts,Men,XL,Camo,54.90
+1036,Long-Sleeve Swim Tunic,Women,M,Black,64.90
+1037,Swim Tunic with Leggings,Women,L,Navy,74.90
+1038,Jammers (Swim Briefs),Men,XL,Black,47.90
+1039,Jammers (Swim Briefs),Men,M,Black,47.90
+1040,Modest Swim Dress,Women,L,Burgundy,69.90
+1041,Modest Swim Dress,Women,S,Gray,69.90
+1042,Full Coverage Rash Guard Set,Women,L,Black,79.90
+1043,Full Coverage Rash Guard Set,Women,M,Blue,79.90
+1044,Extended Swim Leggings,Women,L,Black,49.90
+1045,Swim Hoodie Cover-Up,Women,L,Gray,54.90
+1046,Quick-Dry Swim Shirt,Men,L,Gray,45.90
+1047,UV Protection Swim Top,Unisex,M,White,49.90
+1048,Swim Joggers,Men,L,Navy,44.90
+1049,Swim Tunic with Tights,Women,L,Emerald,74.90
+1050,Swim Hoodie Top,Women,M,Navy,59.90
