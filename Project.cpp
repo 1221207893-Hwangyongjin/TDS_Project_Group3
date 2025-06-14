@@ -8,6 +8,12 @@
 
 using namespace std;
 
+class PaymentMethod;
+class User;
+class Admin;
+class ADTstack;
+class ADTstackOrder;
+
 int getMaxCountLines(const string& filename) {
     ifstream infile(filename);
     
@@ -47,7 +53,9 @@ struct Product {
     int id;
     string name;
     string category;
-    int quantity;
+    string size;  // size
+    string color; // color
+    int quantity; // only for the User Cart quantity
     double price;
 };
 
@@ -57,12 +65,128 @@ struct Order {
     string username;
     int productId;
     string productName;
+    string category;
+    string size;
+    string color;
     int quantity;
     double totalPrice; 
+    string paymentMethod;
+    double finalAmount; // also call as grand total
     string timestamp;
 };
 
+// ================================================================================================================================ Payment Method
 
+// PaymentMethod
+class PaymentMethod {
+protected:
+    double amount;
+    double discount;
+
+public:
+    PaymentMethod(double amt, double disc) : amount(amt), discount(disc) {}
+
+    virtual void pay() = 0;
+
+	virtual string getMethodName() = 0;
+
+    double getDiscountedAmount() const {
+        return amount * (1 - discount);
+    }
+
+    virtual ~PaymentMethod() {}
+};
+
+// subclass OnlineBanking
+class OnlineBanking : public PaymentMethod {
+private:
+    string bankName; // record the bank name, example: Maybank, CIMB
+
+public:
+    OnlineBanking(double amt, const string& bank)
+        : PaymentMethod(amt, 0.2), bankName(bank) {}  // assume dicsount is 20%
+
+    string getMethodName() override {
+        return "Online Banking";
+    }
+
+    void pay() override {
+        cout << "Online Banking Payment via " << bankName << endl;
+        cout << "Original amount: " << amount << endl;
+        cout << "Discount: 20%" << endl;
+        cout << "Final amount: " << getDiscountedAmount() << endl;
+    }
+};
+
+
+// subclass CreditCard
+class CreditCard : public PaymentMethod {
+public:
+    CreditCard(double amt) : PaymentMethod(amt, 0.1) {} // discount 10%
+
+	string getMethodName() override {
+	    return "Credit Card";
+	}
+
+    void pay() override {
+        cout << "Credit Card Payment" << endl;
+        cout << "Original amount: " << amount << endl;
+        cout << "Discount: 10%" << endl;
+        cout << "Final amount: " << getDiscountedAmount() << endl;
+    }
+};
+
+// subclass EWallet
+class EWallet : public PaymentMethod {
+public:
+    EWallet(double amt) : PaymentMethod(amt, 0.05) {} // discount 5%
+
+	string getMethodName() override {
+	    return "E-Wallet";
+	}
+
+    void pay() override {
+        cout << "E-Wallet Payment" << endl;
+        cout << "Original amount: " << amount << endl;
+        cout << "Discount: 5%" << endl;
+        cout << "Final amount: " << getDiscountedAmount() << endl;
+    }
+};
+
+class QR_Code : public PaymentMethod {
+public:
+    QR_Code(double amt) : PaymentMethod(amt, 0.05) {}  // discount 5%
+
+    string getMethodName() override {
+        return "QR Code";
+    }
+
+    void pay() override {
+        cout << "QR Code Payment" << endl;
+        cout << "Original amount: " << amount << endl;
+        cout << "Discount: 0%" << endl;
+        cout << "Final amount: " << getDiscountedAmount() << endl;
+    }
+};
+
+class Cash : public PaymentMethod {
+public:
+    Cash(double amt) : PaymentMethod(amt, 0.05) {}  // discount 5%
+
+    string getMethodName() override {
+        return "Cash";
+    }
+
+    void pay() override {
+        cout << "Cash Payment" << endl;
+        cout << "Original amount: " << amount << endl;
+        cout << "Discount: 0%" << endl;
+        cout << "Final amount: " << getDiscountedAmount() << endl;
+    }
+};
+
+
+// class Stack for product
 class ADTstack {
 private:
     Product stack[100];
@@ -114,11 +238,12 @@ public:
         cout << "Products in Stack (Top to Bottom):\n";
         for (int i = topstack; i >= 0; --i) {
             Product &p = stack[i];
-            cout 
+            cout << fixed << setprecision(2)
               << p.id << ", "
               << p.name << ", "
               << p.category << ", "
-              << p.quantity << ", "
+              << p.size << ", "
+              << p.color << ", "
               << p.price << "\n";
         }
     }
@@ -129,11 +254,12 @@ public:
         for (int i = 0; i <= topstack; ++i) {
             Product &p = stack[i];
             
-            outfile 
+            outfile << fixed << setprecision(2)
               << p.id << ","
               << p.name << ","
               << p.category << ","
-              << p.quantity << ","
+              << p.size << ","
+              << p.color << ","
               << p.price << "\n";
         }
         
@@ -165,10 +291,8 @@ public:
             
             getline(ss, p.name, ',');
             getline(ss, p.category, ',');
-
-            // convert to int
-            getline(ss, tmp, ',');  
-			p.quantity = stoi(tmp);
+            getline(ss, p.size, ',');
+            getline(ss, p.color, ',');
 			
             getline(ss, tmp, ',');  
 			p.price = stod(tmp);
@@ -243,21 +367,41 @@ public:
 	            bool needSwap = false;  
 	
 	            switch (field) {
-	                case 1:
+	                case 1: // Asc by id
 	                    needSwap = stack[j].id > stack[j+1].id;
 	                    break;
-	                case 2:
+	                case 2: // Desc by id
+	                    needSwap = stack[j].id < stack[j+1].id;
+	                    break;
+	                case 3: // Asc by name
 	                    needSwap = stack[j].name > stack[j+1].name;
 	                    break;
-	                case 3:
+	                case 4: // Desc by name
+	                    needSwap = stack[j].name < stack[j+1].name;
+	                    break;
+	                case 5: // Asc by category
 	                    needSwap = stack[j].category > stack[j+1].category;
 	                    break;
-
-	                case 7:
-	                    needSwap = stack[j].quantity > stack[j+1].quantity;
+	                case 6: // Desc by category
+	                    needSwap = stack[j].category < stack[j+1].category;
 	                    break;
-	                case 8:
+	                case 7: // Asc by size
+	                    needSwap = stack[j].size > stack[j+1].size;
+	                    break;
+	                case 8: // Desc by size
+	                    needSwap = stack[j].size < stack[j+1].size;
+	                    break;
+	                case 9: // Asc by color
+	                    needSwap = stack[j].color > stack[j+1].color;
+	                    break;
+	                case 10: // Desc by color
+	                    needSwap = stack[j].color < stack[j+1].color;
+	                    break;
+	                case 11: // Asc by price
 	                    needSwap = stack[j].price > stack[j+1].price;
+	                    break;
+	                case 12: // Desc by price
+	                    needSwap = stack[j].price < stack[j+1].price;
 	                    break;
 	                default:
 	                    needSwap = false;  
@@ -300,7 +444,8 @@ public:
 	    return -1;
 	}
 
-    
+    //friend double User::calculateCartTotal();
+    friend User;
 };
 
 
@@ -358,17 +503,17 @@ public:
             
             getline(ss, tmp, ',');
             order.orderId = stoi(tmp);
-
+            
         	getline(ss, tmp, ',');
         	order.userId = stoi(tmp);
-            
+		            
             getline(ss, order.username, ',');
             
 			getline(ss, tmp, ',');
             order.productId = stoi(tmp);
             
             getline(ss, order.productName, ',');
-            
+
             getline(ss, tmp, ','); 
 			order.quantity = stoi(tmp);
 			
@@ -397,7 +542,9 @@ public:
             cout << "Order ID: " << order.orderId    << "\n"
                  << "User:     " << order.username   << "\n"
                  << "Product:  " << order.productName << " (ID: " << order.productId << ")\n"
-                 << "Quantity: " << order.quantity   << "\n"
+                 << "Categories: " << order.category  << "\n"
+                 << "Size: " << order.size   << "\n"
+                 << "Color: " << order.color   << "\n"
                  << "Total:    $" << order.totalPrice << "\n"
                  << "Time:     " << order.timestamp  << "\n\n";
         }
@@ -494,7 +641,7 @@ public:
     }	 
     
     // checkout: move cart to order history
-	void checkout() {
+	void checkout(PaymentMethod* payment) {
 		
 		int orderIdForSave = 1 + getMaxCountLines("orders.txt");
 		
@@ -503,6 +650,7 @@ public:
 	        
 	        // Generate order
 	        Order order;
+	        
 	        order.orderId = orderIdForSave; // Generate a unique order ID
 	        order.userId = userId;
 	        order.username = username;
@@ -510,7 +658,10 @@ public:
 	        order.productId = product.id;
 	        order.productName = product.name;
 	        order.quantity = 1; // Assume 1 item per purchase
-	        order.totalPrice = product.price;
+	        
+			order.totalPrice = product.price;
+	        order.paymentMethod = payment->getMethodName();
+	        order.finalAmount = payment->getDiscountedAmount();
 	        order.timestamp = getCurrentTime(); // Get the current time
 	        
 	        orderHistory.push(order); // Store in order history
@@ -524,7 +675,10 @@ public:
 	                 << order.productId << ","
 	                 << order.productName << ","
 	                 << order.quantity << ","
+	                 
 	                 << order.totalPrice << ","
+	                 << order.paymentMethod << ","
+	                 << order.finalAmount << ","
 	                 << order.timestamp << "\n";
 	            file.close();
 	        } else {
@@ -546,6 +700,16 @@ public:
 	void loadOrderHistory() {
 	    orderHistory.loadOrdersFromFile("orders.txt", username);
 	}	
+    
+    // get the grand total price from the shoppingcart
+    double calculateCartTotal() {
+        double total = 0.0;
+        for (int i = cart.topstack; i >= 0; --i) {
+        	// total += cart.stack[i].price * cart.stack[i].quantity;
+            total += cart.stack[i].price * 1; // !!!------------ can improve to combine quantity
+        }
+        return total;
+    }
     
 };
 
@@ -580,14 +744,16 @@ void adminMenu() {
             cout << "Product Id: "<< p.id << endl;      
 			
             cout << "Enter name: ";
-            cin.ignore();
 			getline(cin, p.name);
             
 			cout << "Enter category: ";
 			getline(cin, p.category);
             
-			cout << "Enter quantity: ";
-			cin >> p.quantity;
+			cout << "Enter size: ";
+			getline(cin, p.size);
+			
+			cout << "Enter color: ";
+			getline(cin, p.color);
             
 			cout << "Enter price: ";
 			cin >> p.price;
@@ -602,7 +768,8 @@ void adminMenu() {
                      << p.id << ", "
                      << p.name << ", "
                      << p.category << ", "
-                     << p.quantity << ", "
+                     << p.size << ", "
+                     << p.color << ", "
                      << p.price << "\n";
        		}
             break;
@@ -657,6 +824,7 @@ void userMenu(User* currentUser){
              << "2. Browse Products By Sorting" << endl
              << "3. View Shopping Cart" << endl
              << "4. Display Order History" << endl
+             << "5. Delete Account (no implemented yet)"
              << "0. Logout & Save Cart" << endl
              << "\nEnter choice: ";
         cin >> choice;
@@ -683,7 +851,8 @@ void userMenu(User* currentUser){
                      << "ID: "       << foundProduct.id << "\n"
                      << "Name: "     << foundProduct.name << "\n"
                      << "Category: " << foundProduct.category << "\n"
-                     << "Quantity: " << foundProduct.quantity << "\n"
+                     << "Size: " << foundProduct.size << "\n"
+                     << "Color: " << foundProduct.color << "\n"
                      << "Price: $"   << foundProduct.price << "\n";
                     
                 // purchase logic
@@ -708,24 +877,33 @@ void userMenu(User* currentUser){
         	ADTstack productStackForSorting;
 			productStackForSorting.loadFromFile("products.txt");
 			
-			cout << "Choose field to sort by:\n"
-            	 << "1. id\n"
-                 << "2. name\n"
-                 << "3. category\n"
-                 << "4. size\n"
-                 << "5. color\n"
-                 << "6. material\n"
-                 << "7. quantity\n"
-                 << "8. price\n"
-                 << "Enter field number: ";
+			cout << "Choose sorting option:\n"
+     			 << " 1. Ascending by id           2. Descending by id\n"
+     			 << " 3. Ascending by name         4. Descending by name\n"
+     			 << " 5. Ascending by category     6. Descending by category\n"
+     			 << " 7. Ascending by size         8. Descending by size\n"
+     			 << " 9. Ascending by color       10. Descending by color\n"
+     			 << "11. Ascending by price       12. Descending by price\n"
+     			 << "Enter option number: ";
+
             int field;
             cin >> field;
             //cin.ignore();
             
             productStackForSorting.sortByField(field);
-            string fieldNames[9] = {"", "id", "name", "category", "size", "color", "material", "quantity", "price"}; // 1 = id, 2 = name, .... 
+
+            string fieldNames[13] = {
+			    "", 
+			    "ascending by id", "descending by id",
+			    "ascending by name", "descending by name",
+			    "ascending by category", "descending by category",
+			    "ascending by size", "descending by size",
+			    "ascending by color", "descending by color",
+			    "ascending by price", "descending by price"
+			}; // 1 = ascending by id, 2 = descending by id, .... 
+                        
             
-            if (field >= 1 && field <= 8)
+            if (field >= 1 && field <= 12)
                 cout << "Products sorted by " << fieldNames[field] << ".\n";
             else
                 cout << "Invalid field choice. No sorting applied.\n";
@@ -737,14 +915,59 @@ void userMenu(User* currentUser){
         case 3: {
             currentUser->displayCart();
             
-		    char confirm;
+		    string confirm;
 		    cout << "Proceed to checkout? (y/n): ";
 		    cin >> confirm;
 		    cin.ignore();
 		
-		    if (confirm == 'y' || confirm == 'Y') {
-		        currentUser->checkout(); // checkout and also save order history to file
-		        cout << "Checkout completed. Cart cleared.\n";
+		    if (confirm == "y" || confirm == "Y") {
+		        double totalAmount = currentUser->calculateCartTotal();
+
+		        cout << "\n=== Payment Methods ===" << endl;
+		        cout << "1. Online Banking (20% discount)" << endl;
+		        cout << "2. Credit Card (10% discount)" << endl;
+		        cout << "Enter payment method (1-2): ";		        
+		        
+		        int paymentChoice;
+		        cin >> paymentChoice;
+		        cin.ignore();
+		        
+		        PaymentMethod* payment = nullptr;
+		        
+		        switch (paymentChoice) {
+		            case 1: {
+		                string bankName;
+		                cout << "Enter bank name (e.g., Maybank, CIMB): ";
+		                getline(cin, bankName);
+		                payment = new OnlineBanking(totalAmount, bankName);
+		                break;
+		            }
+		            case 2:
+		                payment = new CreditCard(totalAmount);
+		                break;
+		            default:
+		                cout << "Invalid payment method. Checkout cancelled." << endl;
+		                return;
+		        }		        
+				
+				// display payment details
+		        cout << "\n=== Payment Summary ===" << endl;
+		        cout << "Payment Method: " << payment->getMethodName() << endl;
+		        payment->pay();
+				
+				// Confirmation of final payment
+		        string finalConfirm;
+		        cout << "\nConfirm payment? (y/n): ";
+		        cin >> finalConfirm;
+				        
+		        if (finalConfirm == "y" || finalConfirm == "Y") {
+		            currentUser->checkout(payment); // checkout and also save order history to file
+		            cout << "Checkout completed. Cart cleared." << endl;
+		        } else {
+		            delete payment;
+		            cout << "Payment cancelled." << endl;
+		        }	
+		        
 		    }
 		    break;
 		    

@@ -1,0 +1,6 @@
+1001,1004,Sunset Flow,Women,M,Pink,1,44.90
+1001,1002,Wave Rider,Men,M,Blue,1,59.90
+1002,1012,Blue Surge,Sport,S,Turquoise,1,53.00
+1002,1050,Pink Reef,Women,M,Pink,1,45.90
+1003,1012,Blue Surge,Sport,S,Turquoise,1,53.00
+1003,1009,Sun Ray,Women,M,Orange,1,42.50
