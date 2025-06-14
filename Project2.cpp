@@ -8,6 +8,12 @@
 
 using namespace std;
 
+class PaymentMethod;
+class User;
+class Admin;
+class ADTstack;
+class ADTstackOrder;
+
 int getMaxCountLines(const string& filename) {
     ifstream infile(filename);
     
@@ -49,7 +55,7 @@ struct Product {
     string category;
     string size;  // size
     string color; // color
-    //int quantity;
+    int quantity; // only for the User Cart quantity
     double price;
 };
 
@@ -64,6 +70,8 @@ struct Order {
     string color;
     int quantity;
     double totalPrice; 
+    string paymentMethod;
+    double finalAmount; // also call as grand total
     string timestamp;
 };
 
@@ -436,7 +444,8 @@ public:
 	    return -1;
 	}
 
-    
+    //friend double User::calculateCartTotal();
+    friend User;
 };
 
 
@@ -632,7 +641,7 @@ public:
     }	 
     
     // checkout: move cart to order history
-	void checkout() {
+	void checkout(PaymentMethod* payment) {
 		
 		int orderIdForSave = 1 + getMaxCountLines("orders.txt");
 		
@@ -641,6 +650,7 @@ public:
 	        
 	        // Generate order
 	        Order order;
+	        
 	        order.orderId = orderIdForSave; // Generate a unique order ID
 	        order.userId = userId;
 	        order.username = username;
@@ -648,7 +658,10 @@ public:
 	        order.productId = product.id;
 	        order.productName = product.name;
 	        order.quantity = 1; // Assume 1 item per purchase
-	        order.totalPrice = product.price;
+	        
+			order.totalPrice = product.price;
+	        order.paymentMethod = payment->getMethodName();
+	        order.finalAmount = payment->getDiscountedAmount();
 	        order.timestamp = getCurrentTime(); // Get the current time
 	        
 	        orderHistory.push(order); // Store in order history
@@ -662,7 +675,10 @@ public:
 	                 << order.productId << ","
 	                 << order.productName << ","
 	                 << order.quantity << ","
+	                 
 	                 << order.totalPrice << ","
+	                 << order.paymentMethod << ","
+	                 << order.finalAmount << ","
 	                 << order.timestamp << "\n";
 	            file.close();
 	        } else {
@@ -689,7 +705,8 @@ public:
     double calculateCartTotal() {
         double total = 0.0;
         for (int i = cart.topstack; i >= 0; --i) {
-            total += cart.stack[i].price * cart.stack[i].quantity;
+        	// total += cart.stack[i].price * cart.stack[i].quantity;
+            total += cart.stack[i].price * 1; // !!!------------ can improve to combine quantity
         }
         return total;
     }
@@ -807,6 +824,7 @@ void userMenu(User* currentUser){
              << "2. Browse Products By Sorting" << endl
              << "3. View Shopping Cart" << endl
              << "4. Display Order History" << endl
+             << "5. Delete Account (no implemented yet)"
              << "0. Logout & Save Cart" << endl
              << "\nEnter choice: ";
         cin >> choice;
@@ -903,8 +921,53 @@ void userMenu(User* currentUser){
 		    cin.ignore();
 		
 		    if (confirm == "y" || confirm == "Y") {
-		        currentUser->checkout(); // checkout and also save order history to file
-		        cout << "Checkout completed. Cart cleared.\n";
+		        double totalAmount = currentUser->calculateCartTotal();
+
+		        cout << "\n=== Payment Methods ===" << endl;
+		        cout << "1. Online Banking (20% discount)" << endl;
+		        cout << "2. Credit Card (10% discount)" << endl;
+		        cout << "Enter payment method (1-2): ";		        
+		        
+		        int paymentChoice;
+		        cin >> paymentChoice;
+		        cin.ignore();
+		        
+		        PaymentMethod* payment = nullptr;
+		        
+		        switch (paymentChoice) {
+		            case 1: {
+		                string bankName;
+		                cout << "Enter bank name (e.g., Maybank, CIMB): ";
+		                getline(cin, bankName);
+		                payment = new OnlineBanking(totalAmount, bankName);
+		                break;
+		            }
+		            case 2:
+		                payment = new CreditCard(totalAmount);
+		                break;
+		            default:
+		                cout << "Invalid payment method. Checkout cancelled." << endl;
+		                return;
+		        }		        
+				
+				// display payment details
+		        cout << "\n=== Payment Summary ===" << endl;
+		        cout << "Payment Method: " << payment->getMethodName() << endl;
+		        payment->pay();
+				
+				// Confirmation of final payment
+		        string finalConfirm;
+		        cout << "\nConfirm payment? (y/n): ";
+		        cin >> finalConfirm;
+				        
+		        if (finalConfirm == "y" || finalConfirm == "Y") {
+		            currentUser->checkout(payment); // checkout and also save order history to file
+		            cout << "Checkout completed. Cart cleared." << endl;
+		        } else {
+		            delete payment;
+		            cout << "Payment cancelled." << endl;
+		        }	
+		        
 		    }
 		    break;
 		    
