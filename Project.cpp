@@ -62,7 +62,6 @@ void advanceStaffMenu(ADTstack &st);
 void staffMenu(Staff* currentStaff);
 void userMenu(User* currentUser);
 void adminMenu(Admin* currentAdmin);
-void categoryManagementMenu();
 
 //struct Product;
 //struct OrderHeader;
@@ -107,8 +106,6 @@ int getMaxIdFromFile(const string& filename) {
 }
 
 
-
-
 // -------------------------------
 // Struct Definitions
 // -------------------------------
@@ -147,11 +144,6 @@ struct OrderItem {
 struct OperationRecord {
     string type;    // operation:"add" or "remove"
     Product product; // object of product want to operation
-};
-
-struct CategoryRecord {
-    string type;    // "add" or "remove"
-    string category; // category name
 };
 
 struct CategoryStats {
@@ -268,101 +260,6 @@ public:
     }
 };
 
-//class stack for category
-class CategoryStack {
-private:
-    string categories[100];
-    int topstack;
-    
-public:
-    CategoryStack() {
-        topstack = -1;
-    }
-    
-    bool empty() {
-        return topstack == -1;
-    }
-
-    bool full() {
-        return topstack == 99;
-    }
-    
-
-    
-    int getTopIndex() {
-        return topstack;
-    }
-
-    
-    void push(const string& c) {
-        if (!full()) {
-            topstack++;
-            categories[topstack] = c;
-        }
-        else {
-            cout << "Stack is Full" << endl;
-        }
-    }
-    
-    string pop() {
-        if (!empty()) {
-            return categories[topstack--];
-        }
-        return "";
-    }
-    
-    void display(){
-    	cout<<"-----------------------------------"<<endl;
-    	cout<<"           Category List           "<<endl;
-    	cout<<"-----------------------------------"<<endl;
-        for (int i = topstack; i >= 0; i--) {
-            cout << (topstack - i + 1) << ". " << categories[i] << endl;
-        }
-    }
-    
-	bool IsCategoryTaken(const string& category){
-        for (int i = 0; i <= topstack; i++) {
-            if (categories[i] == category) return true;
-        }
-        return false;
-    }
-    
-    bool undoRemove(const string& category) {
-        for (int i = 0; i <= topstack; i++) {
-            if (categories[i] == category) {
-                // Shift remaining elements
-                for (int j = i; j < topstack; j++) {
-                    categories[j] = categories[j+1];
-                }
-                topstack--;
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    void saveToFile(const string& filename){
-        ofstream file(filename);
-        for (int i = 0; i <= topstack; i++) {
-            file << categories[i] << endl;
-        }
-        file.close();
-    }
-    
-    void loadFromFile(const string& filename) {
-        ifstream file(filename);
-        string line;
-        topstack = -1; // Reset stack
-        
-        while (getline(file, line) && !full()) {
-            if (!line.empty()) {
-                categories[++topstack] = line;
-            }
-        }
-        file.close();
-    }
-    
-};
 
 // class Stack for product
 class ADTstack {
@@ -375,13 +272,8 @@ public:
         return stack;
     }
 	
-	// constructor
     ADTstack() {
         topstack = -1;
-    }
-
-    ~ADTstack() {
-        //cout << "[ADTstack] Stack destroyed." << endl;
     }
 
     bool empty() {
@@ -426,9 +318,9 @@ public:
 		
         // HEADER (with BLUE color)
         cout << BLUE;
-		cout << "+-----------+---------------------------------------+-----------------+----------+-------------------+-------------+" << "\n";
-		cout << "| ID        | Name                                  | Category        | Size     | Color             | Price       |" << "\n";
-		cout << "+-----------+---------------------------------------+-----------------+----------+-------------------+-------------+" << "\n";
+		cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+		cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
+		cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
         cout << RESET;
         
         for (int i = topstack; i >= 0; --i) {
@@ -437,14 +329,14 @@ public:
             // DATA LINES
 			cout << left  // Left
 			     << "| " << setw(9) << p.id << " | "
-			     << setw(37) << p.name << " | "
+			     << setw(21) << p.name << " | "
 			     << setw(15) << p.category << " | "
 			     << setw(8) << p.size << " | "
-			     << setw(17) << p.color << " | RM"
+			     << setw(9) << p.color << " | RM"
 			     << fixed << setprecision(2) << setw(9) << p.price << " |" << "\n";
 			
-		// TAIL
-		cout << "+-----------+---------------------------------------+-----------------+----------+-------------------+-------------+" << "\n";    
+			// TAIL
+			cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";    
      
         }
     }
@@ -810,9 +702,6 @@ public:
 	    // If we reach here, then element was not present
 	    return -1;
 	}
-	
-	
-
 
     //for the friend double User::calculateCartTotal();
     friend User;
@@ -821,17 +710,12 @@ public:
 
 class OperationStack {
 private:
-    OperationRecord stack[100]; // For product
-
+    OperationRecord stack[100];
     int topstack; // Index of the top element in the stack (-1 when empty)
 
 public:
     OperationStack() {
         topstack = -1; // Initialize stack as empty
-    }
-
-    ~OperationStack() {
-        cout << "Operation Stack destroyed, all data will permanently be saved and can't undo." << endl;
     }
 
 	// Check if stack is empty
@@ -876,34 +760,6 @@ public:
     }
 };
 
-class OperationStackCategory {
-private:
-    CategoryRecord stack[100];
-    int topstack;
-
-public:
-    OperationStackCategory() : topstack(-1) {}
-    
-    bool empty() const { return topstack == -1; }
-    bool full() const { return topstack == 99; }
-    
-    void push(const CategoryRecord& r) {
-        if (!full()) {
-            stack[++topstack] = r;
-        } else {
-            cout << "Undo Stack is Full" << endl;
-        }
-    }
-    
-    CategoryRecord pop() {
-        if (!empty()) {
-            return stack[topstack--];
-        }
-        cout << "Undo Stack is Empty" << endl;
-        return CategoryRecord{};
-    }
-};
-
 
 
 class User {
@@ -928,11 +784,6 @@ public:
    
     User(int inputUserId = 0 , string inputUsername = "", string inputPassword = "")
         :userId(inputUserId), username(inputUsername), password(inputPassword) {}
-
-	~User() {
-	    cout << "[User] Object for user '" << username << "' is being destroyed." << endl;
-	}
-
 
 	// Getter username
     int getUserId() { 
@@ -1038,59 +889,49 @@ public:
     }
     
     // checkout: move cart to order history
- void checkout(PaymentMethod* payment) {
-    int orderId = 1 + getMaxIdFromFile("orders.txt");
+    void checkout(PaymentMethod* payment) {
+        // ID
+        int orderId = 1 + getMaxIdFromFile("orders.txt");
+        
 
-    double totalPrice = calculateCartTotal();
-    double finalPrice = payment->getDiscountedAmount();
+        double totalPrice = calculateCartTotal();
+        
 
-    OrderHeader header;
-    header.orderId = orderId;
-    header.userId = userId;
-    header.username = username;
-    header.paymentMethod = payment->getMethodName();
-    header.totalPrice = totalPrice;
-    header.finalPrice = finalPrice;
-    header.timestamp = getCurrentTime();
-    saveOrderHeader(header);
+        double finalPrice = payment->getDiscountedAmount();
+        
 
-    // ðŸ§¾ Print receipt header before processing cart
-    cout << "\nCheckout completed!\n" << endl;
-    cout << "========================  Receipt  =========================" << endl;
-    cout << "Order ID       : " << orderId << endl;
-    cout << "Date           : " << getCurrentTime() << endl;
-    cout << "Customer Name  : " << username << endl;
-    cout << "Payment Method : " << payment->getMethodName() << endl;
-    cout << "------------------------------------------------------------" << endl;
+        OrderHeader header;
+        header.orderId = orderId;
+        header.userId = userId;
+        header.username = username;
+        header.paymentMethod = payment->getMethodName();
+        header.totalPrice = totalPrice;
+        header.finalPrice = finalPrice;
+        header.timestamp = getCurrentTime();
+        saveOrderHeader(header);
+        
 
-    cout << left << setw(25) << "Product Name"  << setw(10) << "Size" << setw(10) << "Color"  << right << setw(10) << "Price" << endl;
-	cout << "------------------------------------------------------------" << endl;
-    while (!cart.empty()) {
-        Product product = cart.pop();
+        while (!cart.empty()) {
+            Product product = cart.pop();
+            
 
-        OrderItem item;
-        item.orderId = orderId;
-        item.productId = product.id;
-        item.productName = product.name;
-        item.category = product.category;
-        item.size = product.size;
-        item.color = product.color;
-        item.quantity = 1;
-        item.unitPrice = product.price;
-        saveOrderItem(item);
+            OrderItem item;
+            item.orderId = orderId;
+            item.productId = product.id;
+            item.productName = product.name;
+            item.category = product.category;
+            item.size = product.size;
+            item.color = product.color;
+            item.quantity = 1;
+            item.unitPrice = product.price;
+            
+            saveOrderItem(item);
+        }
+        
+        cout << "\nCheckout completed!" << endl;
+		cout << "Order ID: " << orderId << " Thank you for your purchase" << endl;
 
-		cout << left << setw(25) << product.name << setw(10) << product.size << setw(10) << product.color << right << setw(8) << "RM "<< fixed << setprecision(2) << product.price << endl;
     }
-
-    cout << "------------------------------------------------------------" << endl;
-    cout << "Total Price          : RM " << fixed << setprecision(2) << totalPrice << endl;
-    cout << "Discount Ammount     : RM " << fixed << setprecision(2) << (totalPrice - finalPrice) << endl;
-    cout << "Discounted Price     : RM " << fixed << setprecision(2) << finalPrice << endl;
-    cout << "============================================================" << endl;
-    
-    saveCartToFile(); //remove cart product
-}
-
 	
     // display order history
     void displayOrderHistory() {
@@ -1136,7 +977,7 @@ public:
 			    discountRate = (header.totalPrice - header.finalPrice) / header.totalPrice * 100;
 			}
 			            
-            cout << BLUE << "\n--------------------------- [Order #" << header.orderId << "] ---------------------------" << RESET << endl;
+            cout << BLUE << "\n--------------- [Order #" << header.orderId << "] --------------------" << RESET << endl;
             cout << "Payment Date   : " << header.timestamp << endl;
             cout << "Payment Method : " << header.paymentMethod << endl << endl;
             
@@ -1336,7 +1177,6 @@ public:
     
 };
 
-
 class ReportManager {
 private:
     static const int MAX_ORDERS = 100;
@@ -1352,325 +1192,372 @@ private:
     string categories[MAX_CATEGORIES];
     int categoryCount;
     
-    
 public:
     ReportManager() : orderCount(0), itemCount(0), categoryCount(0) {
-		loadCategories();
-	}
+        try {
+            loadCategories();
+        } catch (const exception& e) {
+            cerr << "Error in constructor: " << e.what() << endl;
+        }
+    }
 
     void loadCategories() {
-        ifstream file("category.txt");
-        if (!file.is_open()) {
-            cerr << "Warning: category.txt not found. Using empty categories.\n";
-            return;
-        }
-
-        string line;
-        categoryCount = 0;
-        while (getline(file, line) && categoryCount < MAX_CATEGORIES) {
-            if (!line.empty()) {
-                categories[categoryCount++] = line;
+        try {
+            ifstream file("category.txt");
+            if (!file.is_open()) {
+                cerr << "Warning: category.txt not found. Using empty categories.\n";
+                return;
             }
-        }
-        file.close();
-        
-        if (categoryCount == 0) {
-            cerr << "Warning: No categories found in category.txt\n";
+
+            string line;
+            categoryCount = 0;
+            while (getline(file, line) && categoryCount < MAX_CATEGORIES) {
+                if (!line.empty()) {
+                    categories[categoryCount++] = line;
+                }
+            }
+            file.close();
+            
+            if (categoryCount == 0) {
+                cerr << "Warning: No categories found in category.txt\n";
+            }
+        } catch (const exception& e) {
+            cerr << "Error loading categories: " << e.what() << endl;
         }
     }
     
     // loading the orders data
     void loadData() {
-
-        ifstream headerFile("orders.txt");
-        if (!headerFile.is_open()) {
-            cerr << "Failed to open orders.txt\n";
-            return;
+        try {
+            // Load order headers
+            ifstream headerFile("orders.txt");
+            if (!headerFile.is_open()) {
+                cerr << "Failed to open orders.txt\n";
+                return;
+            }
+            
+            string line;
+            orderCount = 0;
+            while (getline(headerFile, line) && orderCount < MAX_ORDERS) {
+                try {
+                    stringstream ss(line);
+                    string temp;
+                    
+                    getline(ss, temp, ',');
+                    orders[orderCount].orderId = stoi(temp);
+                    
+                    getline(ss, temp, ',');
+                    orders[orderCount].userId = stoi(temp);
+                    
+                    getline(ss, orders[orderCount].username, ',');
+                    getline(ss, orders[orderCount].paymentMethod, ',');
+                    
+                    getline(ss, temp, ',');
+                    orders[orderCount].totalPrice = stod(temp);
+                    
+                    getline(ss, temp, ',');
+                    orders[orderCount].finalPrice = stod(temp);
+                    
+                    getline(ss, orders[orderCount].timestamp);
+                    
+                    orderCount++;
+                } catch (const invalid_argument& e) {
+                    cerr << "Invalid number in orders.txt: " << e.what() << " in line: " << line << endl;
+                } catch (const out_of_range& e) {
+                    cerr << "Number out of range in orders.txt: " << e.what() << " in line: " << line << endl;
+                } catch (const exception& e) {
+                    cerr << "Error parsing orders.txt: " << e.what() << " in line: " << line << endl;
+                }
+            }
+            headerFile.close();
+            
+            // Load order items
+            ifstream itemFile("order_items.txt");
+            if (!itemFile.is_open()) {
+                cerr << "Failed to open order_items.txt\n";
+                return;
+            }
+            
+            itemCount = 0;
+            while (getline(itemFile, line) && itemCount < MAX_ITEMS) {
+                try {
+                    stringstream ss(line);
+                    string temp;
+                    
+                    getline(ss, temp, ',');
+                    items[itemCount].orderId = stoi(temp);
+                    
+                    getline(ss, temp, ',');
+                    items[itemCount].productId = stoi(temp);
+                    
+                    getline(ss, items[itemCount].productName, ',');
+                    getline(ss, items[itemCount].category, ',');
+                    getline(ss, items[itemCount].size, ',');
+                    getline(ss, items[itemCount].color, ',');
+                    
+                    getline(ss, temp, ',');
+                    items[itemCount].quantity = stoi(temp);
+                    
+                    getline(ss, temp, ',');
+                    items[itemCount].unitPrice = stod(temp);
+                    
+                    itemCount++;
+                } catch (const invalid_argument& e) {
+                    cerr << "Invalid number in order_items.txt: " << e.what() << " in line: " << line << endl;
+                } catch (const out_of_range& e) {
+                    cerr << "Number out of range in order_items.txt: " << e.what() << " in line: " << line << endl;
+                } catch (const exception& e) {
+                    cerr << "Error parsing order_items.txt: " << e.what() << " in line: " << line << endl;
+                }
+            }
+            itemFile.close();
+            
+        } catch (const exception& e) {
+            cerr << "Error in loadData: " << e.what() << endl;
         }
-        
-        string line;
-        orderCount = 0;
-        while (getline(headerFile, line) && orderCount < MAX_ORDERS) {
-            stringstream ss(line);
-            string temp;
-            
-            getline(ss, temp, ',');
-            orders[orderCount].orderId = stoi(temp);
-            
-            getline(ss, temp, ',');
-            orders[orderCount].userId = stoi(temp);
-            
-            getline(ss, orders[orderCount].username, ',');
-            getline(ss, orders[orderCount].paymentMethod, ',');
-            
-            getline(ss, temp, ',');
-            orders[orderCount].totalPrice = stod(temp);
-            
-            getline(ss, temp, ',');
-            orders[orderCount].finalPrice = stod(temp);
-            
-            getline(ss, orders[orderCount].timestamp);
-            
-            orderCount++;
-        }
-        headerFile.close();
-        
-        // loading order items data
-        ifstream itemFile("order_items.txt");
-        if (!itemFile.is_open()) {
-            cerr << "Failed to open order_items.txt\n";
-            return;
-        }
-        
-        itemCount = 0;
-        while (getline(itemFile, line) && itemCount < MAX_ITEMS) {
-            stringstream ss(line);
-            string temp;
-            
-            getline(ss, temp, ',');
-            items[itemCount].orderId = stoi(temp);
-            
-            getline(ss, temp, ',');
-            items[itemCount].productId = stoi(temp);
-            
-            getline(ss, items[itemCount].productName, ',');
-            getline(ss, items[itemCount].category, ',');
-            getline(ss, items[itemCount].size, ',');
-            getline(ss, items[itemCount].color, ',');
-            
-            getline(ss, temp, ',');
-            items[itemCount].quantity = stoi(temp);
-            
-            getline(ss, temp, ',');
-            items[itemCount].unitPrice = stod(temp);
-            
-            itemCount++;
-        }
-        itemFile.close();
-        
     }
     
     // display Summary Report
     void displaySummaryReport() {
-        double totalRevenue = 0.0;
-        double totalOriginal = 0.0;
-        int totalItems = 0;
-        int totalOrders = orderCount;
-        
-        for (int i = 0; i < orderCount; i++) {
-            totalRevenue += orders[i].finalPrice;
-            totalOriginal += orders[i].totalPrice;
+        try {
+            double totalRevenue = 0.0;
+            double totalOriginal = 0.0;
+            int totalItems = 0;
+            int totalOrders = orderCount;
+            
+            for (int i = 0; i < orderCount; i++) {
+                totalRevenue += orders[i].finalPrice;
+                totalOriginal += orders[i].totalPrice;
+            }
+            
+            for (int i = 0; i < itemCount; i++) {
+                totalItems += items[i].quantity;
+            }
+            
+            double discountPercentage = (totalOriginal > 0) ? 
+                ((totalOriginal - totalRevenue) / totalOriginal * 100) : 0;
+                    
+            cout << "\n ORDER SUMMARY REPORT:\n";
+            
+            cout << BLUE <<"+------------------+-------------------+\n" << RESET;
+            cout << "| Total Orders     | "   << left << setw(18) << totalOrders << "| \n";
+            cout << "| Total Items Sold | "   << setw(18) << totalItems << "| \n";
+            cout << "| Total Revenue    | RM" << setw(16) << fixed << setprecision(2) << totalRevenue << "| \n";
+            cout << "| Original Value   | RM" << setw(16) << totalOriginal << "| \n";
+            cout << "| Total Discount   | RM" << setw(16) << fixed << setprecision(2) << (totalOriginal - totalRevenue) << "| \n";
+            cout << "| Discount (%)     | ";
+            cout << "-" << left << setw(5) << fixed << setprecision(2) << discountPercentage << setw(12) << "%" << "|\n";
+            cout << BLUE << "+------------------+-------------------+\n\n" << RESET;
+        } catch (const exception& e) {
+            cerr << "Error in displaySummaryReport: " << e.what() << endl;
         }
-        
-        for (int i = 0; i < itemCount; i++) {
-            totalItems += items[i].quantity;
-        }
-        
-        double discountPercentage = (totalOriginal > 0) ? 
-            ((totalOriginal - totalRevenue) / totalOriginal * 100) : 0;
-                
-        cout << "\n ORDER SUMMARY REPORT:\n";
-        
-        cout << BLUE <<"+------------------+-------------------+\n" << RESET;
-        cout << "| Total Orders     | "   << left << setw(18) << totalOrders << "| \n";
-        cout << "| Total Items Sold | "   << setw(18) << totalItems << "| \n";
-        cout << "| Total Revenue    | RM" << setw(16) << fixed << setprecision(2) << totalRevenue << "| \n";
-        cout << "| Original Value   | RM" << setw(16) << totalOriginal << "| \n";
-        cout << "| Total Discount   | RM" << setw(16) << fixed << setprecision(2) << (totalOriginal - totalRevenue) << "| \n";
-		cout << "| Discount (%)     | ";
-		cout << "-" << left << setw(5) << fixed << setprecision(2) << discountPercentage << setw(12) << "%" << "|\n";
-        cout << BLUE << "+------------------+-------------------+\n\n" << RESET;
     }
     
     // Displays sales report by category
     void displayCategoryReport() {
-
-        if (categoryCount == 0) {
-            loadCategories(); // Reload if categories are empty
-        }
-    
-        int orderCounts[MAX_CATEGORIES] = {0};
-        int itemQuantities[MAX_CATEGORIES] = {0};
-        double revenues[MAX_CATEGORIES] = {0.0};
-    
-        for (int i = 0; i < itemCount; i++) {
-            for (int j = 0; j < categoryCount; j++) {
-                if (items[i].category == categories[j]) {
-                    itemQuantities[j] += items[i].quantity;
-                    revenues[j] += items[i].unitPrice * items[i].quantity;
-                    
-                    // Check if this is a new order for the category
-                    bool isNewOrder = true;
-                    for (int k = 0; k < i; k++) {
-                        if (items[k].orderId == items[i].orderId) {
-                            isNewOrder = false;
-                            break;
+        try {
+            if (categoryCount == 0) {
+                loadCategories(); // Reload if categories are empty
+            }
+        
+            int orderCounts[MAX_CATEGORIES] = {0};
+            int itemQuantities[MAX_CATEGORIES] = {0};
+            double revenues[MAX_CATEGORIES] = {0.0};
+        
+            for (int i = 0; i < itemCount; i++) {
+                for (int j = 0; j < categoryCount; j++) {
+                    if (items[i].category == categories[j]) {
+                        itemQuantities[j] += items[i].quantity;
+                        revenues[j] += items[i].unitPrice * items[i].quantity;
+                        
+                        // Check if this is a new order for the category
+                        bool isNewOrder = true;
+                        for (int k = 0; k < i; k++) {
+                            if (items[k].orderId == items[i].orderId) {
+                                isNewOrder = false;
+                                break;
+                            }
                         }
+                        if (isNewOrder) {
+                            orderCounts[j]++;
+                        }
+                        break;
                     }
-                    if (isNewOrder) {
-                        orderCounts[j]++;
-                    }
-                    break;
                 }
             }
-        }
 
-        cout <<"\n CATEGORY SALES REPORT:\n";
-	    cout << BLUE << "+------------------+---------+---------+------------+\n";
-	    cout << "| Category         | Orders  | Items   | Revenue    |\n";
-	    cout << "+------------------+---------+---------+------------+\n" << RESET;
-        
-        int totalOrders = 0;
-        int totalItems = 0;
-        double totalRevenue = 0.0;
-    
-	    for (int i = 0; i < categoryCount; i++) {
-	        cout << "| " << left << setw(16) << categories[i] 
-	             << " | " << left << setw(7) << orderCounts[i] 
-	             << " | " << setw(7) << itemQuantities[i] 
-	             << " | RM" << right << setw(8) << fixed << setprecision(2) << revenues[i] << " |\n";
+            cout <<"\n CATEGORY SALES REPORT:\n";
+            cout << BLUE << "+------------------+---------+---------+------------+\n";
+            cout << "| Category         | Orders  | Items   | Revenue    |\n";
+            cout << "+------------------+---------+---------+------------+\n" << RESET;
             
-            totalOrders += orderCounts[i];
-            totalItems += itemQuantities[i];
-            totalRevenue += revenues[i];
+            int totalOrders = 0;
+            int totalItems = 0;
+            double totalRevenue = 0.0;
+        
+            for (int i = 0; i < categoryCount; i++) {
+                cout << "| " << left << setw(16) << categories[i] 
+                     << " | " << left << setw(7) << orderCounts[i] 
+                     << " | " << setw(7) << itemQuantities[i] 
+                     << " | RM" << right << setw(8) << fixed << setprecision(2) << revenues[i] << " |\n";
+                
+                totalOrders += orderCounts[i];
+                totalItems += itemQuantities[i];
+                totalRevenue += revenues[i];
+            }
+        
+            cout << "+------------------+---------+---------+------------+\n";
+            cout << "| " << left << setw(16) << "Total" 
+                 << " | " << left << setw(7) << totalOrders 
+                 << " | " << setw(7) << totalItems 
+                 << " | RM" << right << setw(8) << totalRevenue << " |\n";
+            cout << "+------------------+---------+---------+------------+\n\n";
+        } catch (const exception& e) {
+            cerr << "Error in displayCategoryReport: " << e.what() << endl;
         }
-    
-	    cout << "+------------------+---------+---------+------------+\n";
-	    cout << "| " << left << setw(16) << "Total" 
-	         << " | " << left << setw(7) << totalOrders 
-	         << " | " << setw(7) << totalItems 
-	         << " | RM" << right << setw(8) << totalRevenue << " |\n";
-	    cout << "+------------------+---------+---------+------------+\n\n";
     }
     
     // Displays report by payment method
-	void displayPaymentReport() {
-
-	    const string paymentMethods[5] = {
-	        "Online Banking",
-	        "Credit Card",
-	        "E-Wallet",
-	        "QR Code",
-	        "Cash"
-	    };
-	    
-
-	    int counts[5] = {0};
-	    double amounts[5] = {0.0};
-	    
-	    for (int i = 0; i < orderCount; i++) {
-	        const string& method = orders[i].paymentMethod;
-	        
-	        // Directly match payment methods
-	        for (int j = 0; j < 5; j++) {
-	            if (method == paymentMethods[j]) {
-	                counts[j]++;
-	                amounts[j] += orders[i].finalPrice;
-	                break;
-	            }
-	        }
-	    }
-	    
-	    int totalCount = 0;
-	    double totalAmount = 0.0;
-	    for (int i = 0; i < 5; i++) {
-	        totalCount += counts[i];
-	        totalAmount += amounts[i];
-	    }
-	    
-		cout << "\n PAYMENT METHOD REPORT:";
-	    cout << BLUE << "\n+------------------+---------+------------+\n";
-	    cout << "| Method           | Orders  | Revenue    |\n";
-	    cout << "+------------------+---------+------------+\n" << RESET;
-	    
-	    for (int i = 0; i < 5; i++) {
-	        if (counts[i] > 0) { // Only display payment methods with data
-	            cout << "| " << left << setw(16) << paymentMethods[i]
-	                 << " | " << left << setw(7) << counts[i]
-	                 << " | RM" << right << setw(8) << fixed << setprecision(2) << amounts[i] << " |\n";
-	        }
-	    }
-	    
-	    cout << "+------------------+---------+------------+\n";
-	    cout << "| " << left << setw(16) << "Total"
-	         << " | " << left << setw(7) << totalCount
-	         << " | RM" << right << setw(8) << totalAmount << " |\n";
-	    cout << "+------------------+---------+------------+\n";
-	}
+    void displayPaymentReport() {
+        try {
+            const string paymentMethods[5] = {
+                "Online Banking",
+                "Credit Card",
+                "E-Wallet",
+                "QR Code",
+                "Cash"
+            };
+            
+            int counts[5] = {0};
+            double amounts[5] = {0.0};
+            
+            for (int i = 0; i < orderCount; i++) {
+                const string& method = orders[i].paymentMethod;
+                
+                // Directly match payment methods
+                for (int j = 0; j < 5; j++) {
+                    if (method == paymentMethods[j]) {
+                        counts[j]++;
+                        amounts[j] += orders[i].finalPrice;
+                        break;
+                    }
+                }
+            }
+            
+            int totalCount = 0;
+            double totalAmount = 0.0;
+            for (int i = 0; i < 5; i++) {
+                totalCount += counts[i];
+                totalAmount += amounts[i];
+            }
+            
+            cout << "\n PAYMENT METHOD REPORT:";
+            cout << BLUE << "\n+------------------+---------+------------+\n";
+            cout << "| Method           | Orders  | Revenue    |\n";
+            cout << "+------------------+---------+------------+\n" << RESET;
+            
+            for (int i = 0; i < 5; i++) {
+                if (counts[i] > 0) { // Only display payment methods with data
+                    cout << "| " << left << setw(16) << paymentMethods[i]
+                         << " | " << left << setw(7) << counts[i]
+                         << " | RM" << right << setw(8) << fixed << setprecision(2) << amounts[i] << " |\n";
+                }
+            }
+            
+            cout << "+------------------+---------+------------+\n";
+            cout << "| " << left << setw(16) << "Total"
+                 << " | " << left << setw(7) << totalCount
+                 << " | RM" << right << setw(8) << totalAmount << " |\n";
+            cout << "+------------------+---------+------------+\n";
+        } catch (const exception& e) {
+            cerr << "Error in displayPaymentReport: " << e.what() << endl;
+        }
+    }
     
     // Displays detailed report for all orders
     void displayDetailedReport() {
-        
-        for (int i = 0; i < orderCount; i++) {
-            const OrderHeader& header = orders[i];
+        try {
+            for (int i = 0; i < orderCount; i++) {
+                const OrderHeader& header = orders[i];
 
-			// for discount
-			int discountRate = 0.0;
-			if (header.totalPrice > 0.0) {
-			    discountRate = (header.totalPrice - header.finalPrice) / header.totalPrice * 100;
-			}
-            
-            cout << BLUE << "\n\n[ORDER ID #" << header.orderId << "] -------------------------------------------------------------------------" << RESET << endl;
-            cout << "Username       : " << header.username << " (ID: " << header.userId << ")\n";
-            cout << "Payment Date   : " << header.timestamp << endl;
-            cout << "Payment Method : " << header.paymentMethod << endl << endl;
-            
-            cout << "Subtotal       : RM" << fixed << setprecision(2) << header.totalPrice << endl;
-            cout << "Discount       : " << discountRate << "%" << endl;
-			cout << "Final Payment  : RM" << header.finalPrice << endl << endl;
-			            
-            cout << "Items:\n";
-            int itemCount = 0;
-            double orderItemsTotal = 0.0;
-            
-            for (int j = 0; j < this->itemCount; j++) {
-                if (items[j].orderId == header.orderId) {
-                    cout << "  - " << items[j].productName 
-                         << " (" << items[j].category << ") "
-                         << "Size: " << items[j].size
-                         << ", Color: " << items[j].color
-                         << ", Qty: " << items[j].quantity
-                         << ", Unit Price: RM" << fixed << setprecision(2) << items[j].unitPrice
-//                       << ", Subtotal: RM" << (items[j].unitPrice * items[j].quantity)
-                         << "\n";
-                    itemCount++;
-                    orderItemsTotal += items[j].unitPrice * items[j].quantity;
+                // for discount
+                int discountRate = 0.0;
+                if (header.totalPrice > 0.0) {
+                    discountRate = (header.totalPrice - header.finalPrice) / header.totalPrice * 100;
                 }
-            }
-                        
-            if (itemCount == 0) {
-                cout << "  No items found for this order.\n";
+                
+                cout << BLUE << "\n\n[ORDER ID #" << header.orderId << "] -------------------------------------------------------------------------" << RESET << endl;
+                cout << "Username       : " << header.username << " (ID: " << header.userId << ")\n";
+                cout << "Payment Date   : " << header.timestamp << endl;
+                cout << "Payment Method : " << header.paymentMethod << endl << endl;
+                
+                cout << "Subtotal       : RM" << fixed << setprecision(2) << header.totalPrice << endl;
+                cout << "Discount       : " << discountRate << "%" << endl;
+                cout << "Final Payment  : RM" << header.finalPrice << endl << endl;
+                
+                cout << "Items:\n";
+                int itemCount = 0;
+                double orderItemsTotal = 0.0;
+                
+                for (int j = 0; j < this->itemCount; j++) {
+                    if (items[j].orderId == header.orderId) {
+                        cout << "  - " << items[j].productName 
+                             << " (" << items[j].category << ") "
+                             << "Size: " << items[j].size
+                             << ", Color: " << items[j].color
+                             << ", Qty: " << items[j].quantity
+                             << ", Unit Price: RM" << fixed << setprecision(2) << items[j].unitPrice
+                             << "\n";
+                        itemCount++;
+                        orderItemsTotal += items[j].unitPrice * items[j].quantity;
+                    }
+                }
+                
+                if (itemCount == 0) {
+                    cout << "  No items found for this order.\n";
+                }
+                
+                cout << BLUE << "------------------------------------------------------------------------------------------" << RESET << endl;
             }
             
-            cout << BLUE << "------------------------------------------------------------------------------------------" << RESET << endl;
+            cout << "\nTotal Orders Displayed: " << orderCount << "\n";
+        } catch (const exception& e) {
+            cerr << "Error in displayDetailedReport: " << e.what() << endl;
         }
-        
-        cout << "\nTotal Orders Displayed: " << orderCount << "\n";
     }
 
-    // Displays overview reports (summary + category + payment)
+    // Other methods remain unchanged with added try-catch
     void displayOverviewReports() {
-        loadData(); // Ensure data is loaded
-        displaySummaryReport();
-        displayCategoryReport();
-        displayPaymentReport();
+        try {
+            loadData();
+            displaySummaryReport();
+            displayCategoryReport();
+            displayPaymentReport();
+        } catch (const exception& e) {
+            cerr << "Error in displayOverviewReports: " << e.what() << endl;
+        }
     }
 
-    // Displays detailed order reports
     void displayOrderDetailsReport() {
-        loadData(); // Ensure data is loaded
-        displayDetailedReport();
+        try {
+            loadData();
+            displayDetailedReport();
+        } catch (const exception& e) {
+            cerr << "Error in displayOrderDetailsReport: " << e.what() << endl;
+        }
     }
     
-    // Display all reports
     void displayFullReport() {
-        loadData();
-        displaySummaryReport();
-        displayCategoryReport();
-        displayPaymentReport();
-        displayDetailedReport();
+        try {
+            loadData();
+            displaySummaryReport();
+            displayCategoryReport();
+            displayPaymentReport();
+            displayDetailedReport();
+        } catch (const exception& e) {
+            cerr << "Error in displayFullReport: " << e.what() << endl;
+        }
     }
-    
 };
 
 
@@ -1680,185 +1567,369 @@ private:
     string name;
     string password;
 
+    // Helper function to trim whitespace
+    static string trim(const string& str) {
+        size_t start = str.find_first_not_of(" \t");
+        size_t end = str.find_last_not_of(" \t");
+        return (start == string::npos || end == string::npos) ? "" : str.substr(start, end - start + 1);
+    }
+
 public:
     // Constructor
     Staff(int id = 0, string n = "", string p = "") : staffId(id), name(n), password(p) {}
 
     // Getter
-    int getStaffId() { 
-		return staffId; 
-	}
-	
-    string getName() { 
-		return name; 
-	}
-    
-	string getPassword() { 
-		return password; 
-	}
-		
+    int getStaffId() { return staffId; }
+    string getName() { return name; }
+    string getPassword() { return password; }
 
     // Setter
     void setName(string newName) { name = newName; }
     void setPassword(string newPass) { password = newPass; }
 
     static Staff* authenticate(const string& inputStaffname, const string& inputPassword, const string& filename = "staffs.txt") {
-    	
-        ifstream staffFile(filename);
-        if (!staffFile.is_open()) {
-            cerr << "Error: Unable to open user file.\n";
-            return nullptr;
-        }
-
-        string line;
-        while (getline(staffFile, line)) {
-        	stringstream ss(line);
-        	string idStr, parsedStaffname, parsedPassword;
-        	
-        	getline(ss, idStr, ',');
-            getline(ss, parsedStaffname, ',');
-            getline(ss, parsedPassword, ',');
-
-            if (parsedStaffname == inputStaffname && parsedPassword == inputPassword) {
-            	int parsedId = stoi(idStr);
-                return new Staff(parsedId, parsedStaffname, parsedPassword);
+        try {
+            ifstream staffFile(filename);
+            if (!staffFile.is_open()) {
+                cerr << "Error: Unable to open user file.\n";
+                return nullptr;
             }
-        }
 
+            string line;
+            while (getline(staffFile, line)) {
+                try {
+                    stringstream ss(line);
+                    string idStr, parsedStaffname, parsedPassword;
+                    
+                    getline(ss, idStr, ',');
+                    getline(ss, parsedStaffname, ',');
+                    getline(ss, parsedPassword, ',');
+
+                    // Trim values for comparison
+                    parsedStaffname = trim(parsedStaffname);
+                    parsedPassword = trim(parsedPassword);
+
+                    if (parsedStaffname == inputStaffname && parsedPassword == inputPassword) {
+                        int parsedId = stoi(idStr);
+                        return new Staff(parsedId, parsedStaffname, parsedPassword);
+                    }
+                } catch (const exception& e) {
+                    cerr << "Error processing line: " << line << " - " << e.what() << endl;
+                }
+            }
+        } catch (const exception& e) {
+            cerr << "Authentication error: " << e.what() << endl;
+        }
         return nullptr; // login failed
     }
-
+    
     // Static
     static void loadStaffs(Staff staffs[], int &count) {
-	    count = 0;
-	    ifstream file("staffs.txt");
-	    if (!file) return;
-	
-		string line;
-		
-	    while (getline(file, line) && count < MAX_STAFF) {
-	        stringstream ss(line);
-	        string idStr, name, pass;
-	        
-	        if (getline(ss, idStr, ',') && getline(ss, name, ',') && getline(ss, pass)) {
-	            
-	            try {
-	                int id = stoi(idStr);
-	                staffs[count++] = Staff(id, name, pass);
-	            } catch (...) {
-	                cerr << "Invalid staff data: " << line << endl;
-	            }
-	        }
-	    }
-	
-	    file.close();    	
-    	
-	}
-	
-    static void saveStaffs(Staff staffs[], int count){ 
-	
-	    ofstream file("staffs.txt");
-	    for (int i = 0; i < count; ++i) {
-	        file << staffs[i].getStaffId() << ","
-	             << staffs[i].getName() << ","
-	             << staffs[i].getPassword() << endl;
-	    }
-	    file.close();    	
-	}
+        count = 0;
+        try {
+            ifstream file("staffs.txt");
+            if (!file) return;
+            
+            string line;
+            while (getline(file, line) && count < MAX_STAFF) {
+                try {
+                    stringstream ss(line);
+                    string idStr, name, pass;
+                    
+                    if (getline(ss, idStr, ',') && 
+                        getline(ss, name, ',') && 
+                        getline(ss, pass)) {
+                        
+                        int id = stoi(idStr);
+                        staffs[count++] = Staff(id, trim(name), trim(pass));
+                    }
+                } catch (const exception& e) {
+                    cerr << "Invalid staff data: " << line << " - " << e.what() << endl;
+                }
+            }
+        } catch (const exception& e) {
+            cerr << "Error loading staffs: " << e.what() << endl;
+        }
+    }
 
-	
+    // saveStaffs()
+    static void saveStaffs(Staff staffs[], int count) {
+        try {
+            ofstream file("staffs.txt");
+            file.exceptions(ofstream::failbit | ofstream::badbit);
+            
+            for (int i = 0; i < count; ++i) {
+                if (i >= MAX_STAFF) throw out_of_range("Exceeded staff limit");
+                file << staffs[i].getStaffId() << ","
+                     << staffs[i].getName() << ","
+                     << staffs[i].getPassword() << endl;
+            }
+        } catch (const ofstream::failure& e) {
+            cerr << "Save failed: " << e.what() << "\n";
+        } catch (const out_of_range& e) {
+            cerr << "Data corruption: " << e.what() << "\n";
+        }
+    }
+    
     static void viewStaffs(Staff staffs[], int count) {
-    	
-    	cout << endl << BLUE;
-    	cout << "+---------+----------------------+----------+\n";
-    	cout << "| StaffID | Staff Name           | Password |\n";
-    	cout << "+---------+----------------------+----------+\n";    	
-		cout << RESET;
-	
-	    for (int i = 0; i < count; ++i) {
-	        cout << "| " << left << setw(7) << staffs[i].getStaffId();
-	        cout << " | " << setw(20) << staffs[i].getName();
-	        cout << " | " << "********" << " |\n";
-	    }
-	    
-	    string totalText = "Total Staffs: " + to_string(count);
-	    
-		cout << "|         |                      |          |\n";
-    	cout << "+-------------------------------------------+\n";
-    	cout << "| " << left << setw(40) << totalText << "  |\n";
-    	cout << "+-------------------------------------------+\n\n"; 
-	}
-	
+        try {
+            cout << endl << BLUE;
+            cout << "+---------+----------------------+----------+\n";
+            cout << "| StaffID | Staff Name           | Password |\n";
+            cout << "+---------+----------------------+----------+\n";       
+            cout << RESET;
+        
+            for (int i = 0; i < count; ++i) {
+                cout << "| " << left << setw(7) << staffs[i].getStaffId();
+                cout << " | " << setw(20) << staffs[i].getName();
+                cout << " | " << "********" << " |\n";
+            }
+            
+            string totalText = "Total Staffs: " + to_string(count);
+            
+            cout << "|         |                      |          |\n";
+            cout << "+-------------------------------------------+\n";
+            cout << "| " << left << setw(40) << totalText << "  |\n";
+            cout << "+-------------------------------------------+\n\n"; 
+        } catch (const exception& e) {
+            cerr << "Error displaying staffs: " << e.what() << endl;
+        } 
+    }
+    
     static void addStaff(Staff staffs[], int &count) {
-	    if (count >= MAX_STAFF) {
-	        cout << "Staff limit reached.\n";
-	        return;
-	    }
-	
-	    int id = 1 + getMaxIdFromFile("staffs.txt");
-        cout << "Auto-generated Staff ID: "  << id << endl;	   
-		
-		string name, pass; 
-	    cout << "Enter staffname: ";
-	    cin >> name;
-	    cout << "Enter password : ";
-	    cin >> pass;
-	
-	    staffs[count] = Staff(id, name, pass);
-	    count++;
-	    saveStaffs(staffs, count);
-	    cout << "Staff added.\n"; 
-    	
-	}
-	
+        try {
+            if (count >= MAX_STAFF) {
+                cout << "Staff limit reached.\n";
+                return;
+            }
+            
+            int id = 1 + getMaxIdFromFile("staffs.txt");
+            cout << "Auto-generated Staff ID: " << id << endl;
+            
+            string name;
+            bool validName = false;
+            while (!validName) {
+                cout << "Enter staff name: ";
+                getline(cin, name);
+                name = trim(name);
+                
+                if (name.empty()) {
+                    cout << "Error: Staff name cannot be empty.\n";
+                } else if (name.find(',') != string::npos) {
+                    cout << "Error: Name cannot contain commas.\n";
+                } else {
+                    validName = true;
+                }
+            }
+            
+            string pass;
+            bool validPass = false;
+            while (!validPass) {
+                cout << "Enter password (must be exactly 6 characters): ";
+                getline(cin, pass);
+                pass = trim(pass);
+                
+                if (pass.empty()) {
+                    cout << "Error: Password cannot be empty.\n";
+                } else if (pass.length() != 6) {
+                    cout << "Error: Password must be exactly 6 characters.\n";
+                } else if (pass.find(',') != string::npos) {
+                    cout << "Error: Password cannot contain commas.\n";
+                } else {
+                    validPass = true;
+                }
+            }
+            
+            staffs[count] = Staff(id, name, pass);
+            count++;
+            saveStaffs(staffs, count);
+            cout << "Staff added successfully.\n"; 
+        } catch (const exception& e) {
+            cerr << "Error adding staff: " << e.what() << endl;
+        }
+    }
+    
     static void editStaff(Staff staffs[], int count) {
-	    int id;
-	    cout << "Enter staff ID to edit: ";
-	    cin >> id;
-	    for (int i = 0; i < count; ++i) {
-	        if (staffs[i].getStaffId() == id) {
-	            string newName, newPass;
-	            cout << "Enter new name: ";
-	            cin >> newName;
-	            cout << "Enter new password: ";
-	            cin >> newPass;
-	            staffs[i].setName(newName);
-	            staffs[i].setPassword(newPass);
-	            saveStaffs(staffs, count);
-	            cout << "Staff updated.\n";
-	            return;
-	        }
-	    }
-	    cout << "Staff ID not found.\n";    	
-	}
-    
-	static void deleteStaff(Staff staffs[], int &count) {
-	    int id;
-	    cout << "Enter staff ID to delete: ";
-	    cin >> id;
-	    for (int i = 0; i < count; ++i) {
-	        if (staffs[i].getStaffId() == id) {
-	            for (int j = i; j < count - 1; ++j) {
-	                staffs[j] = staffs[j + 1];
-	            }
-	            count--;
-	            saveStaffs(staffs, count);
-	            cout << "Staff deleted.\n";
-	            return;
-	        }
-	    }
-	    cout << "Staff ID not found.\n";    	
-	}
-    
-	friend void staffMenu(Staff* currentStaff);
-};
+        while (true) { // Add outer loop until successful edit or exit
+            try {
+                string idInput;
+                int id;
+                bool validId = false;
+                
+                while (!validId) {
+                    cout << "Enter staff ID to edit (0 to exit): ";
+                    getline(cin, idInput);
+                    idInput = trim(idInput);
+                    
+                    // Check exit conditions
+                    if (idInput == "0") {
+                        cout << "Edit operation cancelled.\n";
+                        return;
+                    }
+                    
+                    if (idInput.empty()) {
+                        cout << "Error: ID cannot be empty.\n";
+                        continue;
+                    }
+                    
+                    try {
+                        id = stoi(idInput);
+                        validId = true;
+                    } catch (...) {
+                        cout << "Invalid ID format. Please enter a number.\n";
+                    }
+                }
+                
+                bool found = false;
+                for (int i = 0; i < count; ++i) {
+                    if (staffs[i].getStaffId() == id) {
+                        found = true;
+                        
+                        string newName;
+                        bool validName = false;
+                        while (!validName) {
+                            cout << "Enter new name [" << staffs[i].getName() << "] (or press Enter to keep): ";
+                            getline(cin, newName);
+                            newName = trim(newName);
+                            
+                            if (newName.empty()) {
+                                // Keep the original name
+                                newName = staffs[i].getName();
+                                validName = true;
+                            } else if (newName.find(',') != string::npos) {
+                                cout << "Error: Name cannot contain commas.\n";
+                            } else {
+                                validName = true;
+                            }
+                        }
+                        
+                        string newPass;
+                        bool validPass = false;
+                        while (!validPass) {
+                            cout << "Enter new password (6 characters) [********] (or press Enter to keep): ";
+                            getline(cin, newPass);
+                            newPass = trim(newPass);
+                            
+                            if (newPass.empty()) {
+                                // Keep the original password
+                                newPass = staffs[i].getPassword();
+                                validPass = true;
+                            } else if (newPass.length() != 6) {
+                                cout << "Error: Password must be exactly 6 characters.\n";
+                            } else if (newPass.find(',') != string::npos) {
+                                cout << "Error: Password cannot contain commas.\n";
+                            } else {
+                                validPass = true;
+                            }
+                        }
+                        
+                        staffs[i].setName(newName);
+                        staffs[i].setPassword(newPass);
+                        saveStaffs(staffs, count);
+                        cout << "Staff updated.\n";
+                        return; // Exit function after successful editing
+                    }
+                }
+                
+                if (!found) {
+                    cout << "Staff ID " << id << " not found. Please try again.\n";
+                }
+            } catch (const exception& e) {
+                cerr << "Error: " << e.what() << endl;
+            }
+        }
+    }
 
+    static void deleteStaff(Staff staffs[], int &count) {
+        while (true) { // Add an external loop until successfully deleted or exited
+            try {
+                string idInput;
+                int id;
+                bool validId = false;
+                
+                while (!validId) {
+                    cout << "Enter staff ID to delete (0 to exit): ";
+                    getline(cin, idInput);
+                    idInput = trim(idInput);
+                    
+                    // Check exit conditions
+                    if (idInput == "0") {
+                        cout << "Delete operation cancelled.\n";
+                        return;
+                    }
+                    
+                    if (idInput.empty()) {
+                        cout << "Error: ID cannot be empty.\n";
+                        continue;
+                    }
+                    
+                    try {
+                        id = stoi(idInput);
+                        validId = true;
+                    } catch (...) {
+                        cout << "Invalid ID format. Please enter a number.\n";
+                    }
+                }
+                
+                bool found = false;
+                for (int i = 0; i < count; ++i) {
+                    if (staffs[i].getStaffId() == id) {
+                        found = true;
+                        
+                        // Confirm deletion
+                        string confirm;
+                        bool validConfirm = false;
+                        while (!validConfirm) {
+                            cout << "Are you sure you want to delete staff " << staffs[i].getName()
+                                 << "? (yes/no): ";
+                            getline(cin, confirm);
+                            confirm = trim(confirm);
+                            
+                            if (confirm == "yes" || confirm == "y") {
+                                for (int j = i; j < count - 1; ++j) {
+                                    staffs[j] = staffs[j + 1];
+                                }
+                                count--;
+                                saveStaffs(staffs, count);
+                                cout << "Staff deleted.\n";
+                                validConfirm = true;
+                                return; // Exit function after successful deletion
+                            } else if (confirm == "no" || confirm == "n") {
+                                cout << "Deletion cancelled.\n";
+                                validConfirm = true;
+                                return; // Cancel deletion and exit
+                            } else {
+                                cout << "Please enter 'yes' or 'no'.\n";
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    cout << "Staff ID " << id << " not found. Please try again.\n";
+                }
+            } catch (const exception& e) {
+                cerr << "Error deleting staff: " << e.what() << endl;
+            }
+        }
+    }
+    
+    friend void staffMenu(Staff* currentStaff);
+};
 
 class Admin {
 private:
     int adminId;
     string name;
     string password;
+
+    // Helper function to trim whitespace
+    static string trim(const string& str) {
+        size_t start = str.find_first_not_of(" \t");
+        size_t end = str.find_last_not_of(" \t");
+        return (start == string::npos || end == string::npos) ? "" : str.substr(start, end - start + 1);
+    }
 
 public:
     // Constructor
@@ -1876,157 +1947,335 @@ public:
     string getPassword() { 
         return password; 
     }
-        
 
     // Setter
     void setName(string newName) { name = newName; }
     void setPassword(string newPass) { password = newPass; }
 
     static Admin* authenticate(const string& inputAdminname, const string& inputPassword, const string& filename = "admins.txt") {
-        
-        ifstream adminFile(filename);
-        if (!adminFile.is_open()) {
-            cerr << "Error: Unable to open user file.\n";
-            return nullptr;
-        }
-
-        string line;
-        while (getline(adminFile, line)) {
-            stringstream ss(line);
-            string idStr, parsedAdminname, parsedPassword;
-            
-            getline(ss, idStr, ',');
-            getline(ss, parsedAdminname, ',');
-            getline(ss, parsedPassword, ',');
-
-            if (parsedAdminname == inputAdminname && parsedPassword == inputPassword) {
-                int parsedId = stoi(idStr);
-                return new Admin(parsedId, parsedAdminname, parsedPassword);
+        try {
+            ifstream adminFile(filename);
+            if (!adminFile.is_open()) {
+                throw runtime_error("Unable to open user file");
             }
-        }
 
-        return nullptr; // login failed
-    }
-
-    // Static
-    static void loadAdmins(Admin admins[], int &count) {
-        count = 0;
-        ifstream file("admins.txt");
-        if (!file) return;
-    
-        string line;
-        
-        while (getline(file, line) && count < MAX_ADMIN) {
-            stringstream ss(line);
-            string idStr, name, pass;
-            
-            if (getline(ss, idStr, ',') && getline(ss, name, ',') && getline(ss, pass)) {
+            string line;
+            while (getline(adminFile, line)) {
+                stringstream ss(line);
+                string idStr, parsedAdminname, parsedPassword;
                 
-                try {
-                    int id = stoi(idStr);
-                    admins[count++] = Admin(id, name, pass);
-                } catch (...) {
-                    cerr << "Invalid admin data: " << line << endl;
+                getline(ss, idStr, ',');
+                getline(ss, parsedAdminname, ',');
+                getline(ss, parsedPassword, ',');
+
+                // Trim values for comparison
+                parsedAdminname = trim(parsedAdminname);
+                parsedPassword = trim(parsedPassword);
+
+                if (parsedAdminname == inputAdminname && parsedPassword == inputPassword) {
+                    try {
+                        int parsedId = stoi(idStr);
+                        return new Admin(parsedId, parsedAdminname, parsedPassword);
+                    } catch (const exception& e) {
+                        throw runtime_error("Invalid admin ID format in file");
+                    }
                 }
             }
+
+            return nullptr; // login failed
+        } catch (const exception& e) {
+            cerr << "Authentication error: " << e.what() << endl;
+            return nullptr;
         }
-    
-        file.close();        
-        
+    }
+
+    // loadAdmin()
+    static void loadAdmins(Admin admins[], int &count) {
+        count = 0;
+        try {
+            ifstream file("admins.txt");
+            if (!file) return;
+            
+            string line;
+            while (getline(file, line) && count < MAX_ADMIN) {
+                try {
+                    stringstream ss(line);
+                    string idStr, name, pass;
+                    
+                    if (getline(ss, idStr, ',') && 
+                        getline(ss, name, ',') && 
+                        getline(ss, pass)) {
+                        
+                        int id = stoi(idStr);
+                        admins[count++] = Admin(id, trim(name), trim(pass));
+                    }
+                } catch (const exception& e) {
+                    cerr << "Invalid admin data: " << line << " - " << e.what() << endl;
+                }
+            }
+        } catch (const exception& e) {
+            cerr << "Error loading admins: " << e.what() << endl;
+        }
     }
     
-    static void saveAdmins(Admin admins[], int count){ 
-    
-        ofstream file("admins.txt");
-        for (int i = 0; i < count; ++i) {
-            file << admins[i].getAdminId() << ","
-                 << admins[i].getName() << ","
-                 << admins[i].getPassword() << endl;
-        }
-        file.close();        
+    static void saveAdmins(Admin admins[], int count) {
+        try {
+            ofstream file("admins.txt");
+            file.exceptions(ofstream::failbit | ofstream::badbit);
+            
+            for (int i = 0; i < count; ++i) {
+                if (i >= MAX_ADMIN) throw out_of_range("Exceeded admin limit");
+                file << admins[i].getAdminId() << ","
+                     << admins[i].getName() << ","
+                     << admins[i].getPassword() << endl;
+            }
+        } catch (const ofstream::failure& e) {
+            cerr << "Save failed: " << e.what() << "\n";
+        } catch (const out_of_range& e) {
+            cerr << "Data corruption: " << e.what() << "\n";
+        }    
     }
     
     static void viewAdmins(Admin admins[], int count) {
-        
-    	cout << endl << BLUE;
-    	cout << "+---------+----------------------+----------+\n";
-    	cout << "| AdminID | Admin Name           | Password |\n";
-    	cout << "+---------+----------------------+----------+\n";    	
-		cout << RESET;        
-        
-        for (int i = 0; i < count; ++i) {
-            cout << "| " << left << setw(7) << admins[i].getAdminId();
-            cout << " | " << setw(20) << admins[i].getName();
-            cout << " | " << "********" << " |\n";
-        }
-		
-	    string totalText = "Total Admins: " + to_string(count);
-	    
-		cout << "|         |                      |          |\n";
-    	cout << "+-------------------------------------------+\n";
-    	cout << "| " << left << setw(40) << totalText << "  |\n";
-    	cout << "+-------------------------------------------+\n\n"; 		        
+        try {
+            cout << endl << BLUE;
+            cout << "+---------+----------------------+----------+\n";
+            cout << "| AdminID | Admin Name           | Password |\n";
+            cout << "+---------+----------------------+----------+\n";    	
+            cout << RESET;        
+            
+            for (int i = 0; i < count; ++i) {
+                cout << "| " << left << setw(7) << admins[i].getAdminId();
+                cout << " | " << setw(20) << admins[i].getName();
+                cout << " | " << "********" << " |\n";
+            }
+            
+            string totalText = "Total Admins: " + to_string(count);
+            
+            cout << "|         |                      |          |\n";
+            cout << "+-------------------------------------------+\n";
+            cout << "| " << left << setw(40) << totalText << "  |\n";
+            cout << "+-------------------------------------------+\n\n"; 
+        } catch (const exception& e) {
+            cerr << "Error displaying admins: " << e.what() << endl;
+        }       
     }
     
     static void addAdmin(Admin admins[], int &count) {
-        if (count >= MAX_ADMIN) {
-            cout << "Admin limit reached.\n";
-            return;
+        try {
+            if (count >= MAX_ADMIN) {
+                cout << "Admin limit reached.\n";
+                return;
+            }
+            
+            int id = 1 + getMaxIdFromFile("admins.txt");
+            cout << "Auto-generated Admin ID: " << id << endl;
+            
+            string name;
+            bool validName = false;
+            while (!validName) {
+                cout << "Enter admin name: ";
+                getline(cin, name);
+                name = trim(name);
+                
+                if (name.empty()) {
+                    cout << "Error: Admin name cannot be empty.\n";
+                } else if (name.find(',') != string::npos) {
+                    cout << "Error: Name cannot contain commas.\n";
+                } else {
+                    validName = true;
+                }
+            }
+            
+            string pass;
+            bool validPass = false;
+            while (!validPass) {
+                cout << "Enter password (must be exactly 6 characters): ";
+                getline(cin, pass);
+                pass = trim(pass);
+                
+                if (pass.empty()) {
+                    cout << "Error: Password cannot be empty.\n";
+                } else if (pass.length() != 6) {
+                    cout << "Error: Password must be exactly 6 characters.\n";
+                } else if (pass.find(',') != string::npos) {
+                    cout << "Error: Password cannot contain commas.\n";
+                } else {
+                    validPass = true;
+                }
+            }
+            
+            admins[count] = Admin(id, name, pass);
+            count++;
+            saveAdmins(admins, count);
+            cout << "Admin added successfully.\n"; 
+        } catch (const exception& e) {
+            cerr << "Error adding admin: " << e.what() << endl;
         }
-    
-        int id = 1 + getMaxIdFromFile("admins.txt");
-        cout << "Auto-generated Admin ID: " << id << endl;
-        
-		string name, pass;
-        cout << "Enter adminname: ";
-        cin >> name;
-        cout << "Enter password : ";
-        cin >> pass;
-    
-        admins[count] = Admin(id, name, pass);
-        count++;
-        saveAdmins(admins, count);
-        cout << "Admin added.\n"; 
-        
     }
     
     static void editAdmin(Admin admins[], int count) {
-        int id;
-        cout << "Enter admin ID to edit: ";
-        cin >> id;
-        for (int i = 0; i < count; ++i) {
-            if (admins[i].getAdminId() == id) {
-                string newName, newPass;
-                cout << "Enter new name: ";
-                cin >> newName;
-                cout << "Enter new password: ";
-                cin >> newPass;
-                admins[i].setName(newName);
-                admins[i].setPassword(newPass);
-                saveAdmins(admins, count);
-                cout << "Admin updated.\n";
-                return;
-            }
-        }
-        cout << "Admin ID not found.\n";        
-    }
-    
-    static void deleteAdmin(Admin admins[], int &count) {
-        int id;
-        cout << "Enter admin ID to delete: ";
-        cin >> id;
-        for (int i = 0; i < count; ++i) {
-            if (admins[i].getAdminId() == id) {
-                for (int j = i; j < count - 1; ++j) {
-                    admins[j] = admins[j + 1];
+        while (true) {
+            try {
+                string idInput;
+                int id;
+                bool validId = false;
+                
+                while (!validId) {
+                    cout << "Enter admin ID to edit (0 to exit): ";
+                    getline(cin, idInput);
+                    idInput = trim(idInput);
+                    
+                    // Check exit condition
+                    if (idInput == "0") {
+                        cout << "Edit operation cancelled.\n";
+                        return;
+                    }
+                    
+                    if (idInput.empty()) {
+                        cout << "Error: ID cannot be empty.\n";
+                        continue;
+                    }
+                    
+                    try {
+                        id = stoi(idInput);
+                        validId = true;
+                    } catch (...) {
+                        cout << "Invalid ID format. Please enter a number.\n";
+                    }
                 }
-                count--;
-                saveAdmins(admins, count);
-                cout << "Admin deleted.\n";
-                return;
+                
+                bool found = false;
+                for (int i = 0; i < count; ++i) {
+                    if (admins[i].getAdminId() == id) {
+                        found = true;
+                        
+                        string newName;
+                        bool validName = false;
+                        while (!validName) {
+                            cout << "Enter new name [" << admins[i].getName() << "] (or press Enter to keep): ";
+                            getline(cin, newName);
+                            newName = trim(newName);
+                            
+                            if (newName.empty()) {
+                                // Keep current name
+                                newName = admins[i].getName();
+                                validName = true;
+                            } else if (newName.find(',') != string::npos) {
+                                cout << "Error: Name cannot contain commas.\n";
+                            } else {
+                                validName = true;
+                            }
+                        }
+                        
+                        string newPass;
+                        bool validPass = false;
+                        while (!validPass) {
+                            cout << "Enter new password (6 characters) [********] (or press Enter to keep): ";
+                            getline(cin, newPass);
+                            newPass = trim(newPass);
+                            
+                            if (newPass.empty()) {
+                                // Keep current password
+                                newPass = admins[i].getPassword();
+                                validPass = true;
+                            } else if (newPass.length() != 6) {
+                                cout << "Error: Password must be exactly 6 characters.\n";
+                            } else if (newPass.find(',') != string::npos) {
+                                cout << "Error: Password cannot contain commas.\n";
+                            } else {
+                                validPass = true;
+                            }
+                        }
+                        
+                        admins[i].setName(newName);
+                        admins[i].setPassword(newPass);
+                        saveAdmins(admins, count);
+                        cout << "Admin updated.\n";
+                        return;
+                    }
+                }
+                
+                if (!found) {
+                    cout << "Admin ID " << id << " not found. Please try again.\n";
+                }
+            } catch (const exception& e) {
+                cerr << "Error: " << e.what() << endl;
             }
         }
-        cout << "Admin ID not found.\n";        
+    }
+
+    static void deleteAdmin(Admin admins[], int &count) {
+        while (true) {
+            try {
+                string idInput;
+                int id;
+                bool validId = false;
+                
+                while (!validId) {
+                    cout << "Enter admin ID to delete (0 to exit): ";
+                    getline(cin, idInput);
+                    idInput = trim(idInput);
+                    
+                    // Check exit condition
+                    if (idInput == "0") {
+                        cout << "Delete operation cancelled.\n";
+                        return;
+                    }
+                    
+                    if (idInput.empty()) {
+                        cout << "Error: ID cannot be empty.\n";
+                        continue;
+                    }
+                    
+                    try {
+                        id = stoi(idInput);
+                        validId = true;
+                    } catch (...) {
+                        cout << "Invalid ID format. Please enter a number.\n";
+                    }
+                }
+                
+                bool found = false;
+                for (int i = 0; i < count; ++i) {
+                    if (admins[i].getAdminId() == id) {
+                        found = true;
+                        
+                        // Confirm deletion
+                        string confirm;
+                        bool validConfirm = false;
+                        while (!validConfirm) {
+                            cout << "Are you sure you want to delete admin " << admins[i].getName()
+                                 << "? (yes/no): ";
+                            getline(cin, confirm);
+                            confirm = trim(confirm);
+                            
+                            if (confirm == "yes" || confirm == "y") {
+                                for (int j = i; j < count - 1; ++j) {
+                                    admins[j] = admins[j + 1];
+                                }
+                                count--;
+                                saveAdmins(admins, count);
+                                cout << "Admin deleted.\n";
+                                return;
+                            } else if (confirm == "no" || confirm == "n") {
+                                cout << "Deletion cancelled.\n";
+                                return;
+                            } else {
+                                cout << "Please enter 'yes' or 'no'.\n";
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    cout << "Admin ID " << id << " not found. Please try again.\n";
+                }
+            } catch (const exception& e) {
+                cerr << "Error deleting admin: " << e.what() << endl;
+            }
+        }
     }
     
     friend void adminMenu(Admin* currentAdmin);
@@ -2063,7 +2312,6 @@ bool isUsernameTaken(const string& username) {
     return false;
 }
 
-
 // Function to handle password input
 string hidePassword(const string& prompt) {
     string password; // Store the password
@@ -2098,46 +2346,6 @@ string hidePassword(const string& prompt) {
     }
 }
 
-// Function to handle password input can empty
-string hidePasswordCanEmpty(const string& prompt) {
-    string password;
-    char ch;
-    
-    cout << prompt;
-    
-    while (true) {
-        ch = _getch(); // Read a character without echoing to the screen
-        
-        if (ch == '\r') { // If Enter key is pressed
-            if (password.empty()) {
-                cout << endl;
-                return password; // Return empty string if no input
-            }
-            else if (password.length() < 6) { // Minimum length check
-                cout << "\nPassword must be at least 6 characters long. Please try again.\n";
-                cout << prompt;
-                password.clear(); // Clear for retry
-                continue;
-            }
-            cout << endl;
-            return password;
-        }
-        else if (ch == '\b') { // Handle Backspace
-            if (!password.empty()) {
-                cout << "\b \b";
-                password.pop_back();
-            }
-        } 
-		else if (isprint(ch)) { // Only accept printable characters
-            
-			if (password.length() < MAX_PASSWORD_LENGTH) {
-                password += ch;
-                cout << '*';
-            }
-        }
-    }
-}
-
 // =============================================================================================
 
 
@@ -2145,428 +2353,612 @@ string hidePasswordCanEmpty(const string& prompt) {
 
 void basicStaffMenu(ADTstack &mainStack) {
     OperationStack undoStack;
-
     int choice;
-    int maxId = getMaxIdFromFile("products.txt");
-    
+    int maxId = 0;
+
+    // Load max ID with error handling
+    try {
+        maxId = getMaxIdFromFile("products.txt");
+    } catch (const exception& e) {
+        cerr << "Warning: Could not load max ID (" << e.what() 
+             << "). Starting new IDs from 1." << endl;
+        maxId = 0;
+    }
+
     do {
-    	
-	    system("cls");
-		cout << HEADER << endl;
-		cout << YELLOW + "         Basic Operations (Undo Supported)               " + RESET << endl;
-		cout << HEADER << endl;
-			
-        cout << "1. Display Products\n"
-             << "2. Add Product\n"
-             << "3. Delete Latest Product\n"
-             << "4. Undo Operation\n"
-             << "0. Return to Staff Menu & Save to File\n"
-             << "\nPlease Enter Your Choice: ";
-        cin >> choice;
-        cin.ignore();
-
-        switch (choice) {
-        	case 1: {
-        		system("cls");
-        		mainStack.display();
-        		system("pause");
-        		system("cls");
-				break;
-			}
-	        case 2: {  // Add Product
-	        	system("cls");
-				cout << HEADER << endl;
-				cout << YELLOW + "              ADD PRODUCT               " + RESET << endl;
-				cout << HEADER << endl;	        	
-	        	mainStack.display();
-	            Product p;
-	            
-				p.id = ++maxId;
-	            cout << "Product ID  : " << p.id << " (auto generate)" << endl << endl;
-				           
-	            cout << "Enter name  : ";
-				getline(cin, p.name);
-
-				cout << "\nSelect a category from the list below:" << endl;
-				string categories[20];
-				int categoriesCount = 0;
-				
-				// Open a file and read up to 20 lines
-				ifstream catFile("category.txt");
-				string line;
-				while (getline(catFile, line) && categoriesCount < 20) {
-				    if (!line.empty()) {
-				        categories[categoriesCount] = line;
-				        cout << (categoriesCount + 1) << ". " << categories[categoriesCount] << endl;
-				        categoriesCount++;
-				    }
-				}
-				catFile.close();
-				
-				if (categoriesCount == 0) {
-				    cout << "No categories found in category.txt. Automatically set to 'category example' \n";
-				    exit ;
-				}
-				
-				int choice = 0;
-				while (true) {
-				    cout << "Enter category number (1-" << categoriesCount << "): ";
-				    string input;
-				    getline(cin, input);
-				    try {
-				        choice = stoi(input);
-				        if (choice >= 1 && choice <= categoriesCount) {
-				            p.category = categories[choice - 1];
-				            break;
-				        } else {
-				            cout << "Please enter a number between 1 and " << categoriesCount << ".\n";
-				        }
-				    } catch (...) {
-				        cout << "Invalid input. Please enter a number.\n";
-				    }
-				}
-	            
-				cout << "\nEnter size  : ";
-				getline(cin, p.size);
-			
-				cout << "\nEnter color : ";
-				getline(cin, p.color);
-	            
-	            // Add Price with error handling
-	            bool validPrice = false;	            
-	            while (!validPrice) {
-	            	string priceInput;
-					cout << "\nEnter price : RM";
-					getline(cin, priceInput);
-					
-					if (!priceInput.empty()) {
-	                    try {
-	                        p.price = stod(priceInput);
-	                        validPrice = true;
-	                    } catch (...) {
-	                        cout << "Invalid price format. Please enter a valid number.\n";
-	                    }
-	                } else {
-	                    cout << "Price is required. Please enter a value.\n";
-	                }						
-					
-				}
-	            mainStack.push(p);
-	
-	            OperationRecord record = {"remove", p};
-	            undoStack.push(record);
-				
-	            cout << "\nProduct Added! (undo available)\n";
-
-		        cout << BLUE;
-				cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-				cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
-				cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-		        cout << RESET;
-	             
-				cout << left  // Left
-				     << "| " << setw(9) << p.id << " | "
-				     << setw(21) << p.name << " | "
-				     << setw(15) << p.category << " | "
-				     << setw(8) << p.size << " | "
-				     << setw(9) << p.color << " | RM" 
-				     << fixed << setprecision(2) << setw(9) << p.price << " |" << "\n";
-				cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" <<"\n\n";	            
-	          	
-				system("pause");
-				system("cls");
-				break;
-	        }
-	        case 3: {  // Delete Latest Product
-	            if (!mainStack.empty()) {
-	                Product p = mainStack.pop();
-	
-	                OperationRecord record = {"add", p};
-	                undoStack.push(record);
-					
-					cout << "\nProduct Deleted! (undo available)\n";
-			
-			        cout << BLUE;
-					cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-					cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
-					cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-			        cout << RESET;
-					 
-					cout << left  // Left
-					     << "| " << setw(9) << p.id << " | "
-					     << setw(21) << p.name << " | "
-					     << setw(15) << p.category << " | "
-					     << setw(8) << p.size << " | "
-					     << setw(9) << p.color << " | RM" 
-					     << fixed << setprecision(2) << setw(9) << p.price << " |" << "\n";
-					cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" <<"\n\n";	            
-		          	
-					system("pause");
-					system("cls");
-				
-	            } else {
-	                cout << "Stack is empty!\n";
-	            }
-	            break;
-	        }
-	        case 4: {  // Undo Operation
-	            if (!undoStack.empty()) {
-	                OperationRecord record = undoStack.pop();
-	
-	                if (record.type == "add") {
-	                    mainStack.push(record.product);
-	                    cout << "Undo completed: Restored product " << endl;
-	                    
-				        cout << BLUE;
-						cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-						cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
-						cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-				        cout << RESET;
-						 
-						cout << left  // Left
-						     << "| " << setw(9) << record.product.id << " | "
-						     << setw(21) << record.product.name << " | "
-						     << setw(15) << record.product.category << " | "
-						     << setw(8) << record.product.size << " | "
-						     << setw(9) << record.product.color << " | RM" 
-						     << fixed << setprecision(2) << setw(9) << record.product.price << " |" << "\n";
-						cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" <<"\n\n";	            
-			          	                  
-	                } 
-	                else if (record.type == "remove") {
-	                    mainStack.pop();
-	                    cout << "Undo completed: Removed product " << endl;
-	                    
-				        cout << BLUE;
-						cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-						cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
-						cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-				        cout << RESET;
-						 
-						cout << left  // Left
-						     << "| " << setw(9) << record.product.id << " | "
-						     << setw(21) << record.product.name << " | "
-						     << setw(15) << record.product.category << " | "
-						     << setw(8) << record.product.size << " | "
-						     << setw(9) << record.product.color << " | RM" 
-						     << fixed << setprecision(2) << setw(9) << record.product.price << " |" << "\n";
-						cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" <<"\n\n";	            
-			          		                    	                 
-	                }
-	                
-	            } else {
-	                cout << "No operations to undo!\n";
-	            }
-			          	
-				system("pause");
-				system("cls");
-					 	            
-	            break;
-	        }
-	        			
-			case 0: {
-				cout << "Exiting, ";
-				mainStack.saveToFile("products.txt");
-				
-				cout << endl;
-				system("pause");
-				system("cls");
-				break;
-			}
-        }
-    } while (choice != 0);
-}
-
-
-void advanceStaffMenu(ADTstack &st) { // st == mainStack
-
-	string filename = "products.txt";
-    int choice;
-    
-    do {
-    	
-	    system("cls");
-		cout << HEADER << endl;
-		cout << YELLOW + "       Advanced Mode (No Support Undo Mode)              " + RESET << endl;
-		cout << HEADER << endl;
-		    	
-        cout << "1. Display Products" << endl
-             << "2. Edit Product" << endl
-             << "3. Delete Product (by ID)" << endl
-             << "4. Delete Product (by Name)" << endl
-             << "0. Return to Staff Menu & Save to File" << endl
-             << "Enter choice: ";
-        cin >> choice;
-        cin.ignore();
-
-        switch (choice) {
-	        case 1:
-	        	system("cls");
-	            st.display();
-	            system("pause");
-        		system("cls");
-	            break;
-			case 2: {
-				system("cls");
-				st.display();
-				
-	            int id;
-	            cout << "Enter product ID to edit: ";
-	            cin >> id;
-	            cin.ignore();
-	            st.editById(id);
-						
-				break;
-			}
-			
-			case 3: {
-				system("cls");
-				st.display();
-				
-				int target;
-				cout << "Enter product ID to delete: ";
-				cin >> target;
-				st.removeById(target);
-				break;
-			}
-
-
-		    case 4: {
-				system("cls");
-				st.display();		    	
-		    	
-		        string target;
-		        cout << "Enter product name to delete: ";
-		        getline(cin, target);
-		        st.removeByName(target);
-		        break;
-		    }
-					           
-	        case 0:
-	            cout << "Exiting...\n";
-	            st.saveToFile(filename);
-	            system("pause");
-        		system("cls");
-	            break;
-	        default:
-	            cout << "Invalid choice!\n";
-        }
+        try {
+            system("cls");
+            // Menu display
+            cout << HEADER << endl;
+            cout << YELLOW << "         Basic Operations (Undo Supported)               " << RESET << endl;
+            cout << HEADER << endl;
+            cout << "1. Display Products\n"
+                 << "2. Add Product\n"
+                 << "3. Delete Latest Product\n"
+                 << "4. Undo Operation\n"
+                 << "0. Return to Staff Menu & Save to File\n";
+            
+            // Fixed input validation
+            string input;
+            bool validChoice = false;
+            bool firstAttempt = true;  // Track first input attempt
+            
+            while (!validChoice) {
+                if (firstAttempt) {
+                    cout << "\nPlease Enter Your Choice (0-4): ";
+                    firstAttempt = false;
+                } else {
+                    cout << "Please try again. \nEnter Your Choice (0-4): ";
+                }
                 
+                getline(cin, input);
+                
+                // Trim whitespace
+                input.erase(0, input.find_first_not_of(" \t"));
+                input.erase(input.find_last_not_of(" \t") + 1);
+                
+                if (input.empty()) {
+                    cout << "Error: Input cannot be empty. ";
+                    continue;
+                }
+                
+                try {
+                    choice = stoi(input);
+                    if (choice >= 0 && choice <= 4) {
+                        validChoice = true;
+                    } else {
+                        cout << "Error: Please enter a number between 0 and 4. ";
+                    }
+                } catch (const invalid_argument&) {
+                    cout << "Invalid input '" << input << "'. Please enter a numeric value. ";
+                } catch (const out_of_range&) {
+                    cout << "Number too large. Please enter a value between 0 and 4. ";
+                }
+            }
+            
+            switch (choice) {
+                case 1: {  // Display Products
+                    try {
+                        system("cls");
+                        mainStack.display();
+                    } catch (const exception& e) {
+                        cerr << "Display Error: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                }
+                case 2: {  // Add Product
+                    try {
+                        system("cls");
+                        cout << HEADER << endl;
+                        cout << YELLOW << "              ADD PRODUCT               " << RESET << endl;
+                        cout << HEADER << endl;
+                        mainStack.display();
+                        
+                        Product p;
+                        
+                        // ID Generation
+                        if (maxId == INT_MAX) {
+                            throw overflow_error("Maximum ID limit reached");
+                        }
+                        p.id = ++maxId;
+                        
+                        cout << "Product ID  : " << p.id << " (auto generate)" << endl << endl;
+                        
+                        // Name input
+                        cout << "Enter name  : ";
+                        getline(cin, p.name);
+                        if (p.name.empty()) {
+                            throw invalid_argument("Product name cannot be empty");
+                        }
+                        
+                        // Category selection
+                        string categories[20];
+                        int categoriesCount = 0;
+                        ifstream catFile("category.txt");
+                        
+                        if (!catFile) {
+                            throw runtime_error("Category file not found");
+                        }
+                        
+                        string line;
+                        while (getline(catFile, line) && categoriesCount < 20) {
+                            if (!line.empty()) {
+                                categories[categoriesCount] = line;
+                                cout << (categoriesCount + 1) << ". " << line << endl;
+                                categoriesCount++;
+                            }
+                        }
+                        catFile.close();
+                        
+                        if (categoriesCount == 0) {
+                            throw runtime_error("No categories found in category.txt");
+                        }
+                        
+                        int catChoice = 0;
+                        while (true) {
+                            cout << "Enter category number (1-" << categoriesCount << "): ";
+                            string input;
+                            getline(cin, input);
+                            
+                            try {
+                                catChoice = stoi(input);
+                                if (catChoice >= 1 && catChoice <= categoriesCount) {
+                                    p.category = categories[catChoice - 1];
+                                    break;
+                                } else {
+                                    cout << "Please enter a number between 1 and " << categoriesCount << ".\n";
+                                }
+                            } catch (...) {
+                                cout << "Invalid input. Please enter a number.\n";
+                            }
+                        }
+                        
+                        // Size input
+                        cout << "\nEnter size  : ";
+                        getline(cin, p.size);
+                        if (p.size.empty()) {
+                            throw invalid_argument("Size cannot be empty");
+                        }
+                        
+                        // Color input
+                        cout << "\nEnter color : ";
+                        getline(cin, p.color);
+                        if (p.color.empty()) {
+                            throw invalid_argument("Color cannot be empty");
+                        }
+                        
+                        // Price input
+                        bool validPrice = false;
+                        while (!validPrice) {
+                            string priceInput;
+                            cout << "\nEnter price : RM";
+                            getline(cin, priceInput);
+                            
+                            if (priceInput.empty()) {
+                                cout << "Price is required. Please enter a value.\n";
+                                continue;
+                            }
+                            
+                            try {
+                                p.price = stod(priceInput);
+                                if (p.price <= 0) {
+                                    throw invalid_argument("Price must be positive");
+                                }
+                                validPrice = true;
+                            } catch (const exception& e) {
+                                cout << "Invalid price: " << e.what() << endl;
+                            }
+                        }
+                        
+                        // Add to stack
+                        mainStack.push(p);
+                        OperationRecord record = {"remove", p};
+                        undoStack.push(record);
+                        
+                        // Success message
+                        cout << "\nProduct Added! (undo available)\n";
+                        cout << BLUE;
+                        cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                        cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
+                        cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                        cout << RESET;
+                        cout << left
+                             << "| " << setw(9) << p.id << " | "
+                             << setw(21) << p.name << " | "
+                             << setw(15) << p.category << " | "
+                             << setw(8) << p.size << " | "
+                             << setw(9) << p.color << " | RM" 
+                             << fixed << setprecision(2) << setw(9) << p.price << " |" << "\n";
+                        cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n\n";
+                        
+                    } catch (const exception& e) {
+                        cerr << "\nError Adding Product: " << e.what() << endl;
+                        if (maxId > 0) maxId--;  // Rollback ID on failure
+                    }
+                    system("pause");
+                    break;
+                }
+                case 3: {  // Delete Latest Product
+                    try {
+                        if (mainStack.empty()) {
+                            throw runtime_error("Stack is empty - nothing to delete");
+                        }
+                        
+                        Product p = mainStack.pop();
+                        OperationRecord record = {"add", p};
+                        undoStack.push(record);
+                        
+                        cout << "\nProduct Deleted! (undo available)\n";
+                        cout << BLUE;
+                        cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                        cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
+                        cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                        cout << RESET;
+                        cout << left
+                             << "| " << setw(9) << p.id << " | "
+                             << setw(21) << p.name << " | "
+                             << setw(15) << p.category << " | "
+                             << setw(8) << p.size << " | "
+                             << setw(9) << p.color << " | RM" 
+                             << fixed << setprecision(2) << setw(9) << p.price << " |" << "\n";
+                        cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n\n";
+                        
+                    } catch (const exception& e) {
+                        cerr << "Delete Error: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                }
+                case 4: {  // Undo Operation
+                    try {
+                        if (undoStack.empty()) {
+                            throw runtime_error("No operations to undo");
+                        }
+                        
+                        OperationRecord record = undoStack.pop();
+                        if (record.type == "add") {
+                            mainStack.push(record.product);
+                            cout << "Undo completed: Restored product " << endl;
+                            cout << BLUE;
+                            cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                            cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
+                            cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                            cout << RESET;
+                            cout << left
+                                 << "| " << setw(9) << record.product.id << " | "
+                                 << setw(21) << record.product.name << " | "
+                                 << setw(15) << record.product.category << " | "
+                                 << setw(8) << record.product.size << " | "
+                                 << setw(9) << record.product.color << " | RM" 
+                                 << fixed << setprecision(2) << setw(9) << record.product.price << " |" << "\n";
+                            cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n\n";
+                        } 
+                        else if (record.type == "remove") {
+                            mainStack.pop();
+                            cout << "Undo completed: Removed product " << endl;
+                            cout << BLUE;
+                            cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                            cout << "| ID        | Name                  | Category        | Size     | Color     | Price       |" << "\n";
+                            cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+                            cout << RESET;
+                            cout << left
+                                 << "| " << setw(9) << record.product.id << " | "
+                                 << setw(21) << record.product.name << " | "
+                                 << setw(15) << record.product.category << " | "
+                                 << setw(8) << record.product.size << " | "
+                                 << setw(9) << record.product.color << " | RM" 
+                                 << fixed << setprecision(2) << setw(9) << record.product.price << " |" << "\n";
+                            cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n\n";
+                        }
+                        
+                    } catch (const exception& e) {
+                        cerr << "Undo Error: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                }
+                case 0: {  // Exit and Save
+                    try {
+                        mainStack.saveToFile("products.txt");
+                        cout << "Data saved successfully. Returning to staff menu." << endl;
+                    } catch (const exception& e) {
+                        cerr << "Critical Error: Failed to save data (" 
+                             << e.what() << "). Data may be lost!" << endl;
+                    }
+                    system("pause");
+                    break;
+                }
+            }
+        } catch (const exception& e) {
+            cerr << "Menu Error: " << e.what() << endl;
+            system("pause");
+        }
     } while (choice != 0);
-    
 }
+
+void advanceStaffMenu(ADTstack &st) {
+    string filename = "products.txt";
+    int choice;
+    
+    do {
+        try {
+            system("cls");
+            cout << HEADER << endl;
+            cout << YELLOW + "       Advanced Mode (No Support Undo Mode)              " + RESET << endl;
+            cout << HEADER << endl;
+            
+            cout << "1. Display Products" << endl
+                 << "2. Edit Product" << endl
+                 << "3. Delete Product (by ID)" << endl
+                 << "4. Delete Product (by Name)" << endl
+                 << "0. Return to Admin Menu & Save to File" << endl;
+            
+            // Robust input validation
+            string input;
+            bool validChoice = false;
+            bool firstAttempt = true;
+            
+            while (!validChoice) {
+                if (firstAttempt) {
+                    cout << "\nEnter choice (0-4): ";
+                    firstAttempt = false;
+                } else {
+                    cout << "Please try again. \nEnter choice (0-4): ";
+                }
+                
+                getline(cin, input);
+                
+                // Trim whitespace
+                input.erase(0, input.find_first_not_of(" \t"));
+                input.erase(input.find_last_not_of(" \t") + 1);
+                
+                if (input.empty()) {
+                    cout << "Error: Input cannot be empty. ";
+                    continue;
+                }
+                
+                try {
+                    choice = stoi(input);
+                    if (choice >= 0 && choice <= 4) {
+                        validChoice = true;
+                    } else {
+                        cout << "Error: Please enter a number between 0 and 4. ";
+                    }
+                } catch (const invalid_argument&) {
+                    cout << "Invalid input '" << input << "'. Please enter a numeric value. ";
+                } catch (const out_of_range&) {
+                    cout << "Number too large. Please enter a value between 0 and 4. ";
+                }
+            }
+
+            switch (choice) {
+                case 1: {  // Display Products
+                    try {
+                        system("cls");
+                        st.display();
+                    } catch (const exception& e) {
+                        cerr << "Display Error: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                }
+                case 2: {  // Edit Product
+                    try {
+                        system("cls");
+                        st.display();
+                        
+                        string idInput;
+                        bool validId = false;
+                        int id;
+                        
+                        while (!validId) {
+                            cout << "Enter product ID to edit: ";
+                            getline(cin, idInput);
+                            
+                            // Trim whitespace
+                            idInput.erase(0, idInput.find_first_not_of(" \t"));
+                            idInput.erase(idInput.find_last_not_of(" \t") + 1);
+                            
+                            if (idInput.empty()) {
+                                cout << "Error: ID cannot be empty. ";
+                                continue;
+                            }
+                            
+                            try {
+                                id = stoi(idInput);
+                                validId = true;
+                            } catch (const invalid_argument&) {
+                                cout << "Invalid ID '" << idInput << "'. Please enter a number. ";
+                            } catch (const out_of_range&) {
+                                cout << "ID too large. Please enter a valid ID. ";
+                            }
+                        }
+                        
+                        st.editById(id);
+                    } catch (const exception& e) {
+                        cerr << "Edit Error: " << e.what() << endl;
+                        system("pause");
+                    }
+                    break;
+                }
+                case 3: {  // Delete by ID
+                    try {
+                        system("cls");
+                        st.display();
+                        
+                        string targetInput;
+                        bool validTarget = false;
+                        int target;
+                        
+                        while (!validTarget) {
+                            cout << "Enter product ID to delete: ";
+                            getline(cin, targetInput);
+                            
+                            // Trim whitespace
+                            targetInput.erase(0, targetInput.find_first_not_of(" \t"));
+                            targetInput.erase(targetInput.find_last_not_of(" \t") + 1);
+                            
+                            if (targetInput.empty()) {
+                                cout << "Error: ID cannot be empty. ";
+                                continue;
+                            }
+                            
+                            try {
+                                target = stoi(targetInput);
+                                validTarget = true;
+                            } catch (const invalid_argument&) {
+                                cout << "Invalid ID '" << targetInput << "'. Please enter a number. ";
+                            } catch (const out_of_range&) {
+                                cout << "ID too large. Please enter a valid ID. ";
+                            }
+                        }
+                        
+                        st.removeById(target);
+                    } catch (const exception& e) {
+                        cerr << "Delete Error: " << e.what() << endl;
+                        system("pause");
+                    }
+                    break;
+                }
+                case 4: {  // Delete by Name
+                    try {
+                        system("cls");
+                        st.display();
+                        
+                        string target;
+                        bool validName = false;
+                        
+                        while (!validName) {
+                            cout << "Enter product name to delete: ";
+                            getline(cin, target);
+                            
+                            // Trim whitespace
+                            target.erase(0, target.find_first_not_of(" \t"));
+                            target.erase(target.find_last_not_of(" \t") + 1);
+                            
+                            if (target.empty()) {
+                                cout << "Error: Product name cannot be empty. ";
+                                continue;
+                            }
+                            
+                            validName = true;
+                        }
+                        
+                        st.removeByName(target);
+                    } catch (const exception& e) {
+                        cerr << "Delete Error: " << e.what() << endl;
+                        system("pause");
+                    }
+                    break;
+                }
+                case 0: {  // Exit and Save
+                    try {
+                        st.saveToFile(filename);
+                        cout << "Data saved successfully. Returning to admin menu." << endl;
+                    } catch (const exception& e) {
+                        cerr << "Critical Error: Failed to save data (" 
+                             << e.what() << "). Data may be lost!" << endl;
+                    }
+                    system("pause");
+                    break;
+                }
+            }
+        } 
+        catch (const exception& e) {
+            cerr << "Menu Error: " << e.what() << endl;
+            system("pause");
+        }
+    } while (choice != 0);
+}
+
 
 void staffMenu(Staff* currentStaff) {
-	
-	ADTstack st;
+    ADTstack st;
     string filename = "products.txt";
-    st.loadFromFile(filename);
-
+    
+    // Load data with error handling
+    try {
+        st.loadFromFile(filename);
+    } catch (const exception& e) {
+        cerr << "Error loading products: " << e.what() << endl;
+        system("pause");
+        return;
+    }
 	
 	int choice;
 	
-		 	
 	do {
-		
 		system("cls");
-
 		cout << HEADER << endl;
 		cout << YELLOW + "                   STAFF MENU               " + RESET << endl;
 		cout << HEADER << endl;			
-		
 		cout << "Hi " << currentStaff->name << ", ready for your tasks today?" << endl;
 		
-		cout << "1. Product Management\n"
-		     << "2. Category Management\n"
+		cout << "1. Basic Mode    (Support Undo Mode)\n"
+		     << "2. Advanced Mode (No Support Undo Mode)\n"
 		     << "3. View Overview Report (Summary + Category + Payment)\n"
 		     << "4. View Detailed Report (Detailed Orders)\n"
-		     << "0. Exit\n"
-		     << "\nSelect mode: ";	         
-	    cin >> choice;
+		     << "0. Exit\n";
+		
+		// Robust input validation with error handling
+		string input;
+		bool validChoice = false;
+		bool firstAttempt = true;
+		
+		while (!validChoice) {
+			if (firstAttempt) {
+				cout << "\nSelect mode (0-4): ";
+				firstAttempt = false;
+			} else {
+				cout << "Please try again. \nSelect mode (0-4): ";
+			}
+			
+			getline(cin, input);
+			
+			// Trim whitespace
+			input.erase(0, input.find_first_not_of(" \t"));
+			input.erase(input.find_last_not_of(" \t") + 1);
+			
+			if (input.empty()) {
+				cout << "Error: Input cannot be empty. ";
+				continue;
+			}
+			
+			try {
+				choice = stoi(input);
+				if (choice >= 0 && choice <= 4) {
+					validChoice = true;
+				} else {
+					cout << "Error: Please enter a number between 0 and 4. ";
+				}
+			} catch (const invalid_argument&) {
+				cout << "Invalid input '" << input << "'. Please enter a numeric value. ";
+			} catch (const out_of_range&) {
+				cout << "Number too large. Please enter a value between 0 and 4. ";
+			}
+		}
 	    
 	    switch (choice) {
-	        case 1:{
-	        	system("cls");
-				cout << "1. Basic Mode    (Support Undo Mode)\n"
-		     		 << "2. Advanced Mode (No Support Undo Mode)\n"	
-		     		 << "0. Exit\n"
-					 << "\nSelect mode: ";
-				int mode;	 
-		     	cin>>mode;
-		     	
-		     	switch (mode) {
-		        case 1: {
-		            basicStaffMenu(st); // Call basic mode function
-		            break;
-		        }
-		        case 2: {
-		            advanceStaffMenu(st); // Call advance mode function
-		            break;
-		        }
-		        case 0: {
-		            break; // Exit the mode selection
-		        }
-		        default: {
-		            cout << "Invalid mode selection.\n";
-		            system("pause");
-		        }
-	        	}
-	        	
-	        	break;
-			}	
-	        case 2: {
-	        	system("cls");
-	            categoryManagementMenu();
-				break;
-			}
-
-			// Case 3: Display only overview reports
+	        case 1:				
+	            basicStaffMenu(st); // Call basic mode function
+	            break;
+	        case 2:
+	            advanceStaffMenu(st); // Call advance mode function
+	            break;
 			case 3: {
-				
 	    		system("cls");
 				cout << HEADER << endl;
 				cout << YELLOW + "            Overview Report               " + RESET << endl;
 				cout << HEADER << endl;					
-
-			    ReportManager report;
-			    report.displayOverviewReports(); // Summary + Category + Payment
-			    
-			    cout << endl;
-			    system("pause");
-			    system("cls");
-			    break;
+			    try {
+                    ReportManager report;
+                    report.displayOverviewReports();
+                } catch (const exception& e) {
+                    cerr << "Report error: " << e.what() << endl;
+                }
+                system("pause");
+                break;
 			}
-	            
-			// Case 2: Display only detailed orders
 			case 4: {
-				
 	    		system("cls");
 				cout << HEADER << endl;
 				cout << YELLOW + "            DETAILED ORDER REPORT               " + RESET << endl;
 				cout << HEADER << endl;					
-				
-			    ReportManager report;
-			    report.displayOrderDetailsReport(); // Detailed orders only
-			    
-			    cout << endl;
-			    system("pause");
-			    system("cls");			    
-			    break;
+			    try {
+                    ReportManager report;
+                    report.displayOrderDetailsReport();
+                } catch (const exception& e) {
+                    cerr << "Detailed report error: " << e.what() << endl;
+                }
+                system("pause");
+                break;
 			}
-
-	            
 	        case 0:
-	            cout << "Exiting the system. Goodbye!\n";
-			    system("pause");
-			    system("cls");	            
-	            break;
-	        default:
-	            cout << "Invalid selection. Please try again.\n";
-	            break;
-	    }	    
-	} while (choice != 0);		
-
-
+                cout << "Exiting the system. Goodbye!\n";
+                break;
+        }
+    } while (choice != 0);
 }
 
 void userMenu(User* currentUser) {
@@ -2574,12 +2966,10 @@ void userMenu(User* currentUser) {
     
     ADTstack productStack;
 	productStack.loadFromFile("products.txt");
-	bool firstLoad = true; //avoid reload the file to cart
+
     int choice;
-
-	while(true){
-	
-
+    do {
+    	
 		cout << HEADER_SHORT << endl;
 		cout << YELLOW + "              USER MENU               " + RESET << endl;
 		cout << HEADER_SHORT << endl;	
@@ -2595,358 +2985,222 @@ void userMenu(User* currentUser) {
         cout << "0. Logout & Save Cart" << endl;
         cout << "\nEnter choice: ";
         
-        int choice;
-        string input;
-        getline(cin, input);
-        
-        // Validate input is a number
-        try {
-            choice = stoi(input);
-        } catch (...) {
-            cout << "\nInvalid input! Please enter a number (0-6).\n";
-            system("pause");
-            system("cls");
-            continue;
-        }
+        cin >> choice;
+        cin.ignore();
 
 		system("cls");
         switch (choice) {
-		case 1: {     
-		    while (true) {  // Product browsing loop
-		        cout << "Browse Products";
-		        productStack.display();
-		        
-		        cout << "Enter Product ID to purchase (or 0 to return to menu): ";
-		        int targetId;
-		        getline(cin, input);
-		        
-		        try {
-		            targetId = stoi(input);
-		        } catch (...) {
-		            cout << "\nInvalid input! Please enter a number.\n";
-		            system("pause");
-		            system("cls");
-		            continue;
-		        }
-		        
-		        if (targetId == 0) {
-		            system("cls");
-		            break;  // Return to main menu
-		        }
-		        
-		        int index = productStack.binarySearchById(targetId);
-		        
-		        if (index != -1) {
-		            Product* arr = productStack.getStack();
-		            Product& foundProduct = arr[index];
-		                
-		            cout << "\nProduct Found:\n";
-		            cout << BLUE << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
-		            cout << left << "| " << setw(9) << foundProduct.id << " | "
-		                 << setw(21) << foundProduct.name << " | "
-		                 << setw(15) << foundProduct.category << " | "
-		                 << setw(8) << foundProduct.size << " | "
-		                 << setw(9) << foundProduct.color << " | RM"
-		                 << fixed << setprecision(2) << setw(9) << foundProduct.price << " |" << "\n";
-		            cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n" << RESET;   
-		                
-		            // Purchase confirmation loop
-		            bool addedToCart = false;
-		            while (true) {  
-		                cout << "\nAdd To Cart? (y/n): ";
-		                char confirmCart;
-		                cin >> confirmCart;
-		                cin.ignore();
-		
-		                if (tolower(confirmCart) == 'y') {
-		                    currentUser->addToCart(foundProduct);
-		                    cout << "Added to cart!\n";
-		                    addedToCart = true;
-		                    break;
-		                } else if (tolower(confirmCart) == 'n') {
-		                    system("cls");
-		                    break;
-		                } else {
-		                    cout << "Invalid input! Please enter 'y' or 'n'.\n";
-		                }
-		            }
-		
-		            // Only ask about continuing if item was added to cart
-		            if (addedToCart) {
-		                while (true) {
-		                    cout << "\nKeep browsing products? (y/n): ";
-		                    char keepBuying;
-		                    cin >> keepBuying;
-		                    cin.ignore();
-		
-		                    if (tolower(keepBuying) == 'y') {
-		                        system("cls");
-		                        break;  // Continue product browsing loop
-		                    } 
-		                    else if (tolower(keepBuying) == 'n') {
-		                        system("cls");
-		                        return userMenu(currentUser);
-		                    }
-		                    else {
-		                        cout << "Invalid input! Please enter 'y' or 'n'.\n";
-		                    }
-		                }
-		            }
-		        } else {
-		            cout << "Product not found.\n";
-		            system("pause");
-		            system("cls");
-		        }
-		    }
-		    break;
+        case 1: {     
+			int targetId;
+			   	
+            cout << "Browse Products";
+            productStack.display();
+            
+            cout << "Enter Product ID to purchase: ";
+			cin >> targetId;
+            
+			int index = productStack.binarySearchById(targetId);
+			
+            if (index != -1) {
+                Product* arr = productStack.getStack();
+				Product& foundProduct = arr[index]; // *(arr + index)
+					
+                cout << "\nProduct Found:\n";
+                
+                cout << BLUE << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+				cout << left  // Left
+				     << "| " << setw(9) << foundProduct.id << " | "
+				     << setw(21) << foundProduct.name << " | "
+				     << setw(15) << foundProduct.category << " | "
+				     << setw(8) << foundProduct.size << " | "
+				     << setw(9) << foundProduct.color << " | RM"
+				     << fixed << setprecision(2) << setw(9) << foundProduct.price << " |" << "\n";
+				cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n" << RESET;   
+				    
+                // purchase logic
+                char confirmCart;
+                cout << "\nAdd To Cart? (y/n): ";
+                cin >> confirmCart;
+                cin.ignore();
+
+                if (confirmCart == 'y'|| confirmCart == 'Y') {
+                    currentUser->addToCart(foundProduct);
+                    cout << "Added to cart!\n";
+                }
+                    
+            } else {
+                cout << "Product not found.\n";
+            }
+            
+            system("pause");
+            system("cls");
+            
+            break;
 		}
     
-				case 2: {
-				    ADTstack productStackForSorting;
-				    productStackForSorting.loadFromFile("products.txt");
+        case 2: {
+        	ADTstack productStackForSorting;
+			productStackForSorting.loadFromFile("products.txt");
+			
+			cout << "Choose sorting option:\n"
+     			 << " 1. Ascending by id           2. Descending by id\n"
+     			 << " 3. Ascending by name         4. Descending by name\n"
+     			 << " 5. Ascending by category     6. Descending by category\n"
+     			 << " 7. Ascending by size         8. Descending by size\n"
+     			 << " 9. Ascending by color       10. Descending by color\n"
+     			 << "11. Ascending by price       12. Descending by price\n"
+     			 << "\nEnter option number: ";
+
+            int field;
+            cin >> field;
+            //cin.ignore();
+            
+            productStackForSorting.sortByField(field);
+
+            string fieldNames[13] = {
+			    "", 
+			    "ascending by id", "descending by id",
+			    "ascending by name", "descending by name",
+			    "ascending by category", "descending by category",
+			    "ascending by size", "descending by size",
+			    "ascending by color", "descending by color",
+			    "ascending by price", "descending by price"
+			}; // 1 = ascending by id, 2 = descending by id, .... 
+                        
+            
+            if (field >= 1 && field <= 12)
+                cout << "Products sorted by " << fieldNames[field] << ".\n";
+            else
+                cout << "Invalid field choice. No sorting applied.\n";
+                
+            productStackForSorting.display();
+
+			// After sorting continue to purcahase part
+			productStackForSorting.sortByField(1);
+			int targetId;
+            cout << "Enter Product ID to purchase: ";
+			cin >> targetId;
+            
+			int index = productStackForSorting.binarySearchById(targetId);
+			
+            if (index != -1) {
+                Product* arr = productStackForSorting.getStack();
+				Product& foundProduct = arr[index]; // *(arr + index)
+					
+                cout << "\nProduct Found:\n";
+                
+                cout << BLUE << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n";
+				cout << left  // Left
+				     << "| " << setw(9) << foundProduct.id << " | "
+				     << setw(21) << foundProduct.name << " | "
+				     << setw(15) << foundProduct.category << " | "
+				     << setw(8) << foundProduct.size << " | "
+				     << setw(9) << foundProduct.color << " | RM"
+				     << fixed << setprecision(2) << setw(9) << foundProduct.price << " |" << "\n";
+				cout << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n" << RESET;   
 				    
-				    while (true) {
-				        cout << "Choose sorting option:\n"
-				             << " 1. Ascending by id           2. Descending by id\n"
-				             << " 3. Ascending by name         4. Descending by name\n"
-				             << " 5. Ascending by category     6. Descending by category\n"
-				             << " 7. Ascending by size         8. Descending by size\n"
-				             << " 9. Ascending by color       10. Descending by color\n"
-				             << "11. Ascending by price       12. Descending by price\n"
-				             << "\nEnter option number (or 0 to return to menu): ";
+                // purchase logic
+                char confirm;
+                cout << "\nAdd To Cart? (y/n): ";
+                cin >> confirm;
+                cin.ignore();
+
+                if (confirm == 'y' || confirm == 'Y') {
+                    currentUser->addToCart(foundProduct);
+                    cout << "Added to cart!\n";
+                }
+                    
+            } else {
+                cout << "Product not found.\n";
+            }  
+            
+            break; 
+		}
+        case 3: {
+            currentUser->displayCart();
+            
+		    string confirm;
+		    cout << "Proceed to checkout? (y/n): ";
+		    cin >> confirm;
+		    cin.ignore();
+		
+		    if (confirm == "y" || confirm == "Y") {
+		        double totalAmount = currentUser->calculateCartTotal();
+
+		        cout << "\n=== Payment Methods ===" << endl;
+		        cout << "1. Online Banking (20% discount)" << endl;
+		        cout << "2. Credit Card    (10% discount)" << endl;
+		        cout << "3. E-Wallet       (5% discount)" << endl;
+		        cout << "4. QR Code        (5% discount)" << endl;
+		        cout << "5. Cash           (No discount)" << endl;
+		        cout << "\nEnter payment method (1-5): ";		        
+		        
+		        int paymentChoice;
+		        cin >> paymentChoice;
+		        cin.ignore();
+		        
+		        PaymentMethod* payment = nullptr;
+		        
+		        switch (paymentChoice) {
+		            case 1: {
+		                string bankName;
+		                cout << "Enter bank name (e.g., Maybank, CIMB): ";
+		                getline(cin, bankName);
+		                payment = new OnlineBanking(totalAmount, bankName);
+		                break;
+		            }
+		            case 2:
+		                payment = new CreditCard(totalAmount);
+		                break;
+		            case 3:
+		                payment = new EWallet(totalAmount);
+		                break;
+		            case 4:
+		                payment = new QR_Code(totalAmount);
+		                break;
+		            case 5:
+		                payment = new Cash(totalAmount);
+		                break;
+																	
+					default:
+		                cout << "Invalid payment method. Checkout cancelled." << endl;
+		                break;
+		        }		        
 				
-				        string sortInput;
-				        getline(cin, sortInput);
-				        
-				        try {
-				            int field = stoi(sortInput);
-				            
-				            if (field == 0) {
-				                system("cls");
-				                break;  // Return to menu
-				            }
-				            
-				            if (field < 1 || field > 12) {
-				                cout << "Invalid option. Please enter a number between 1 and 12.\n";
-				                continue;
-				            }
+				if (payment != nullptr) {
 				
-				            // Perform sorting
-				            productStackForSorting.sortByField(field);
-				            
-				            string fieldNames[13] = {
-				                "", 
-				                "ascending by id", "descending by id",
-				                "ascending by name", "descending by name",
-				                "ascending by category", "descending by category",
-				                "ascending by size", "descending by size",
-				                "ascending by color", "descending by color",
-				                "ascending by price", "descending by price"
-				            };
-				            
-				            // Purchase section
-				            while (true) {
-				            cout << "Products sorted by " << fieldNames[field] << ".\n";
-				            productStackForSorting.display();
-				                cout << "\nEnter Product ID to purchase (or 0 to return to sorting options): ";
-				                string idInput;
-				                getline(cin, idInput);
-				                
-				                try {
-				                    int targetId = stoi(idInput);
-				                    
-				                    if (targetId == 0) {
-				                    	system("cls");
-				                        break;  // Return to sorting options
-				                    }
-				                    
-				                    // Reset to default sort for binary search
-				                    productStackForSorting.sortByField(1);
-				                    int index = productStackForSorting.binarySearchById(targetId);
-				                    
-				                    if (index != -1) {
-				                        Product* arr = productStackForSorting.getStack();
-				                        Product& foundProduct = arr[index];
-				                        
-				                        cout << "\nProduct Found:\n";
-				                        cout << BLUE << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n"
-				                             << left << "| " << setw(9) << foundProduct.id << " | "
-				                             << setw(21) << foundProduct.name << " | "
-				                             << setw(15) << foundProduct.category << " | "
-				                             << setw(8) << foundProduct.size << " | "
-				                             << setw(9) << foundProduct.color << " | RM"
-				                             << fixed << setprecision(2) << setw(9) << foundProduct.price << " |" << "\n"
-				                             << "+-----------+-----------------------+-----------------+----------+-----------+-------------+" << "\n" << RESET;
-				                        
-				                        	 bool addedToCart = false;
-								            while (true) {  
-								                cout << "\nAdd To Cart? (y/n): ";
-								                char confirmCart;
-								                cin >> confirmCart;
-								                cin.ignore();
-								
-								                if (tolower(confirmCart) == 'y') {
-								                    currentUser->addToCart(foundProduct);
-								                    cout << "Added to cart!\n";
-								                    addedToCart = true;
-								                    break;
-								                } else if (tolower(confirmCart) == 'n') {
-								                    break;
-								                } else {
-								                    cout << "Invalid input! Please enter 'y' or 'n'.\n";
-								                }
-								            }
-								            
-								            if (addedToCart) {
-									                while (true) {
-									                    cout << "\nKeep browsing products? (y/n): ";
-									                    char keepBuying;
-									                    cin >> keepBuying;
-									                    cin.ignore();
-									
-									                    if (tolower(keepBuying) == 'y') {
-									                    	system("cls");
-									                        break;  // Continue product browsing loop
-									                    } 
-									                    else if (tolower(keepBuying) == 'n') {
-									                        system("cls");
-									                        return userMenu(currentUser);
-									                    }
-									                    else {
-									                        cout << "Invalid input! Please enter 'y' or 'n'.\n";
-									                    }
-									                }
-									            }
-					                    } else {
-					                        cout << "Product not found.\n";
-					                        system("pause");
-					                        system("cls");
-					                    }
-				                }
-				                catch (const invalid_argument&) {
-				                    cout << "Invalid input. Please enter a numeric ID.\n";
-
-				                }
-				                catch (const out_of_range&) {
-				                    cout << "Number out of range. Please enter a valid ID.\n";
-
-				                }
-				            }
-				        }
-				        catch (const invalid_argument&) {
-				            cout << "Invalid input. Please enter a number between 1 and 12.\n";
-				            system("pause");
-				            system("cls");
-				        }
-				        catch (const out_of_range&) {
-				            cout << "Number out of range. Please enter a number between 1 and 12.\n";
-				            system("pause");
-				            system("cls");
-				        }
-				    }
-				    break;
-				}
-			
-			case 3: {
-			    if (firstLoad) {
-			        currentUser->loadCartFromFile();
-			        firstLoad = false;
-			    }
-			
-			    while (true) {
-			        currentUser->displayCart();
-			
-			        // Check if cart is empty first
-			        if (currentUser->cart.empty()) {
-			            cout << "\nYour cart is empty. Add some products first!" << endl;
-						system("pause");
-						system("cls");  
-			            break; 
+					// display payment details
+			        cout << "\n=== Payment Summary ===" << endl;
+			        cout << "Payment Method : " << payment->getMethodName() << endl;
+			        payment->pay();
+					
+					// Confirmation of final payment
+			        string finalConfirm;
+			        cout << "\nConfirm payment? (y/n): ";
+			        cin >> finalConfirm;
+					        
+			        if (finalConfirm == "y" || finalConfirm == "Y") {
+			            currentUser->checkout(payment); // checkout and also save order history to file
+			            cout << "Checkout completed. Cart cleared." << endl << endl;
+			           	delete payment;	
+			        
+					} else {		        	
+			            cout << "Payment cancelled." << endl;
+			            delete payment;	
 			        }
-			
-			        string confirm;
-			        cout << "Proceed to checkout? (y/n): ";
-			        cin >> confirm;
-			
-			        if (confirm == "y" || confirm == "Y") {
-			            double totalAmount = currentUser->calculateCartTotal();
-			
-			            cout << "\n====== Payment Methods ======" << endl;
-			            cout << "1. Online Banking (20% discount)" << endl;
-			            cout << "2. Credit Card    (10% discount)" << endl;
-			            cout << "3. E-Wallet       (5% discount)" << endl;
-			            cout << "4. QR Code        (5% discount)" << endl;
-			            cout << "5. Cash           (No discount)" << endl;
-			            cout << "\nEnter payment method (1-5): ";
-			
-			            int paymentChoice;
-			            cin >> paymentChoice;
-			            cin.ignore();
-			
-			            PaymentMethod* payment = nullptr;
-			
-			            switch (paymentChoice) {
-			                case 1: {
-			                    string bankName;
-			                    cout << "Enter bank name (e.g., Maybank, CIMB): ";
-			                    getline(cin, bankName);
-			                    payment = new OnlineBanking(totalAmount, bankName);
-			                    break;
-			                }
-			                case 2:
-			                    payment = new CreditCard(totalAmount);
-			                    break;
-			                case 3:
-			                    payment = new EWallet(totalAmount);
-			                    break;
-			                case 4:
-			                    payment = new QR_Code(totalAmount);
-			                    break;
-			                case 5:
-			                    payment = new Cash(totalAmount);
-			                    break;
-			                default:
-			                    cout << "Invalid payment method. Checkout cancelled." << endl;
-			                    break;
-			            }
-			
-			            if (payment != nullptr) {
-			                cout << "\n======= Payment Summary =======" << endl;
-			                cout << "Payment Method : " << payment->getMethodName() << endl;
-			                payment->pay();
-			
-			                string finalConfirm;
-			                cout << "\nConfirm payment? (y/n): ";
-			                cin >> finalConfirm;
-			
-			                if (finalConfirm == "y" || finalConfirm == "Y") {
-			                    currentUser->checkout(payment);
-			                    cout << "\nCheckout completed. Cart cleared." << endl << endl;
-			                } else {
-			                    cout << "Payment cancelled." << endl;
-			                }
-			
-			                delete payment;
-			            } else {
-			                cout << "Checkout aborted due to invalid payment method." << endl;
-			            }
-			        }
-			        else if (confirm == "n" || confirm == "N") {
-			        	system("cls");
-			        	cin.ignore();
-			            break; // Exit while(true)
-			        }
-			        else {
-			            cout << "Invalid choice! Please enter 'y' or 'n'.\n";
-			        }
-			
-			        system("pause");
-			        system("cls");
-			    }
-			
-			    break; 
-			}
-
+		        
+				} else {
+				    cout << "Checkout aborted due to invalid payment method." << endl;
+				}		        
+		        
+		    }
+		    
+		    system("pause");
+		    system("cls");
+		    
+		    break;
+		    
+    	}
 		
 		case 4: {
 			cout << HEADER << endl;
@@ -2962,132 +3216,143 @@ void userMenu(User* currentUser) {
 		}
 		
 		case 5: {
-		    system("cls");
-		
-		    cout << HEADER_SHORT << endl;
-		    cout << YELLOW + "             Edit Profile               " + RESET << endl;
-		    cout << HEADER_SHORT << endl;
-		
-		    // First password verification
-		    string enteredPassword = hidePassword("For security, please enter your current password: ");
+			system("cls");
+
+			cout << HEADER_SHORT << endl;
+			cout << YELLOW + "             Edit Profile               " + RESET << endl;
+			cout << HEADER_SHORT << endl;
+
+			// First password verification
+			string enteredPassword;
+			cout << "For security, please enter your current password: ";
+			getline(cin, enteredPassword);
+			
+			if (enteredPassword != currentUser->getPassword()) {
+			    cout << "Incorrect password! Profile edit cancelled." << endl;
+			    system("pause");
+			    system("cls");
+			    break;
+			}
+			
+			// Edit Username
+			string newUsername;
+			while (true) {
+			    cout << "\nCurrent Username: " << currentUser->getUsername() << endl;
+			    cout << "Enter new username (press Enter to keep current): ";
+			    getline(cin, newUsername);
+			    
+			    if (newUsername.empty()) {
+			        break; // Keep current username
+			    }
+			    
+			    // Check if username is already taken (excluding current user)
+			    if (isUsernameTaken(newUsername)) {
+			        cout << "Username already taken by another user. Please choose a different one." << endl;
+			    } else {
+			        break; // Valid username
+			    }
+			}
+			
+			// Edit Password - ALWAYS ask for password, regardless of username change
+			string newPassword;
+			while (true) {
+			    cout << "\nEnter new password (press Enter to keep current): ";
+			    getline(cin, newPassword);
+			    
+			    if (newPassword.empty()) {
+			        break; // Keep current password
+			    }
+			    
+			    cout << "Confirm new password: ";
+			    string confirmPassword;
+			    getline(cin, confirmPassword);
+			    
+			    if (newPassword == confirmPassword) {
+			        break; // Valid password confirmation
+			    } else {
+			        cout << "Passwords do not match. Please try again." << endl;
+			    }
+			}
+			
+			// Check if any changes were made
+			if (newUsername.empty() && newPassword.empty()) {
+			    cout << "No changes were made to your profile." << endl;
+			    system("pause");
+			    system("cls");
+			    break;
+			}
+			
+			// Update user object
+			if (!newUsername.empty()) {
+			    currentUser->setUsername(newUsername);
+			}
+			if (!newPassword.empty()) {
+			    currentUser->setPassword(newPassword);
+			}
+			
+			// Update the users.txt file
+			ifstream inFile("users.txt");
+			if (!inFile.is_open()) {
+			    cerr << "Error: Unable to open user file." << endl;
+			    system("pause");
+			    system("cls");
+			    break;
+			}
+			
+			ofstream outFile("temp_users.txt");
+			if (!outFile.is_open()) {
+			    cerr << "Error: Unable to create temporary file." << endl;
+			    inFile.close();
+			    system("pause");
+			    system("cls");
+			    break;
+			}
+			
+			string line;
+			bool updated = false;
+			
+			while (getline(inFile, line)) {
+			    stringstream ss(line);
+			    int id;
+			    string username, password;
+			    
+			    string idString;
+			    getline(ss, idString, ',');
+			    id = stoi(idString);
+			    
+			    getline(ss, username, ',');
+			    getline(ss, password, ',');
+			    
+			    if (id == currentUser->getUserId()) {
+			        // Update the current user's record
+			        outFile << currentUser->getUserId() << "," 
+			               << currentUser->getUsername() << "," 
+			               << currentUser->getPassword() << endl;
+			        updated = true;
+			    } else {
+			        // Write other users unchanged
+			        outFile << line << endl;
+			    }
+			}
+			
+			inFile.close();
+			outFile.close();
+			
+			if (!updated) {
+			    cout << "Error: User record not found in file." << endl;
+			    remove("temp_users.txt");
+			} else {
+			    // Replace the original file with the updated one
+			    remove("users.txt");
+			    rename("temp_users.txt", "users.txt");
+			    cout << "\nProfile updated successfully!" << endl;
+			}
+			
+			system("pause");
+			system("cls");
+
 		    
-		    // Verify password directly (no username needed)
-		    if (enteredPassword != currentUser->getPassword()) {
-		        cout << "\nIncorrect password! Profile edit cancelled." << endl;
-		        system("pause");
-		        system("cls");
-		        break;
-		    }
-		    
-		    // Edit Username
-		    string newUsername;
-		    while (true) {
-		        cout << "\nCurrent Username: " << currentUser->getUsername() << endl;
-		        cout << "Enter new username (press Enter to keep current): ";
-		        getline(cin, newUsername);
-		        
-		        if (newUsername.empty()) {
-		            break; // Keep current username
-		        }
-		        
-		        // Check if username is already taken (excluding current user)
-		        if (isUsernameTaken(newUsername)) {
-		            cout << "Username already taken by another user. Please choose a different one." << endl;
-		        } else {
-		            break; // Valid username
-		        }
-		    }
-		    
-		    // Edit Password
-		    string newPassword = hidePasswordCanEmpty("\nEnter new password (press Enter to keep current): ");
-		    
-		    // Only ask for confirmation if new password is not empty
-		    if (!newPassword.empty()) {
-		        while (true) {
-		            string confirmPassword = hidePassword("Enter confirm new password: ");
-		            
-		            if (newPassword == confirmPassword) {
-		                break; // Valid password confirmation
-		            } else {
-		                cout << "Passwords do not match. Please try again." << endl;
-		            }
-		        }
-		    }
-		    
-		    // Check if any changes were made
-		    if (newUsername.empty() && newPassword.empty()) {
-		        cout << "\nNo changes made to profile." << endl;
-		    } else {
-		        // Update user object
-		        if (!newUsername.empty()) {
-		            currentUser->setUsername(newUsername);
-		        }
-		        if (!newPassword.empty()) {
-		            currentUser->setPassword(newPassword);
-		        }
-		        
-		        // Update the users.txt file
-		        ifstream inFile("users.txt");
-		        if (!inFile.is_open()) {
-		            cerr << "Error: Unable to open user file." << endl;
-		            system("pause");
-		            system("cls");
-		            break;
-		        }
-		        
-		        ofstream outFile("temp_users.txt");
-		        if (!outFile.is_open()) {
-		            cerr << "Error: Unable to create temporary file." << endl;
-		            inFile.close();
-		            system("pause");
-		            system("cls");
-		            break;
-		        }
-		        
-		        string line;
-		        bool updated = false;
-		        
-		        while (getline(inFile, line)) {
-		            stringstream ss(line);
-		            int id;
-		            string username, password;
-		            
-		            string idString;
-		            getline(ss, idString, ',');
-		            id = stoi(idString);
-		            
-		            getline(ss, username, ',');
-		            getline(ss, password, ',');
-		            
-		            if (id == currentUser->getUserId()) {
-		                // Update the current user's record
-		                outFile << currentUser->getUserId() << "," 
-		                       << currentUser->getUsername() << "," 
-		                       << currentUser->getPassword() << endl;
-		                updated = true;
-		            } else {
-		                // Write other users unchanged
-		                outFile << line << endl;
-		            }
-		        }
-		        
-		        inFile.close();
-		        outFile.close();
-		        
-		        if (!updated) {
-		            cout << "Error: User record not found in file." << endl;
-		            remove("temp_users.txt");
-		        } else {
-		            // Replace the original file with the updated one
-		            remove("users.txt");
-		            rename("temp_users.txt", "users.txt");
-		            cout << "\nProfile updated successfully!" << endl;
-		        }
-		    }
-		    
-		    system("pause");
-		    system("cls");
-		    break;
+			break;
 		}
 		
 		case 6: {
@@ -3106,43 +3371,27 @@ void userMenu(User* currentUser) {
 			cout << "- Some transaction records may still be retained for compliance purposes, but will not include personal identifiers." << endl;
 			cout << "- This action is IRREVERSIBLE, please ensure you have backed up all important data." << endl << endl;
 			cout << "Please enter your password to verify that it is you and to agree to the above terms." << endl;
-
-            enteredPassword = hidePassword("Enter Password: ");
+			cout << "Enter Password: ";
+			
+            cin >> enteredPassword;
                 
             if (enteredPassword != currentUser->getPassword()) {
                 cout << "Incorrect password! Account deletion cancelled.\n";
-                system("pause");
-                system("cls");
                 break;
             }
                 
             // Second confirmation
             int confirm;
-			while (true) {
-			    cout << "Are you sure you want to delete current account? This operation cannot be undone.\n";
-			    cout << "1. Yes\n";
-			    cout << "2. No\n";
-			    cout << "Choose (1 or 2): ";
-			    
-			    cin >> confirm;
-			    
-			    // Clear input buffer
-			    cin.clear();
-			    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			    
-			    if (confirm == 1 || confirm == 2) {
-			        break;  // Valid input, exit loop
-			    }
-			    
-			    cout << "Invalid choice! Please enter 1 or 2 only.\n\n";
-			}
-			
-			if (confirm != 1) {
-			    cout << "Account deletion cancelled.\n";
-			    system("pause");
-			    system("cls");
-			    break;
-			}
+			cout << "Are you sure want to delete current account? This operation cannot be undone." << endl;
+			cout << "1. Yes" << endl;
+			cout << "2. No" << endl;
+			cout << "Choose (1 or 2): ";
+            cin >> confirm;
+                
+            if (confirm != 1) {
+                cout << "Account deletion cancelled.\n";
+                break;
+            }
  
             // Proceed with deletion
             ifstream inFile("users.txt");
@@ -3198,9 +3447,7 @@ void userMenu(User* currentUser) {
                     
                 if (success) {
                     cout << "\nAccount deleted successfully. You will be logged out.\n";
-                    system("pause");
-                    system("cls");
-                    return;
+                    choice = 0; // This will exit the menu loop
                 } else {
                     cout << "Error occurred during account deletion.\n";
                 }
@@ -3213,283 +3460,267 @@ void userMenu(User* currentUser) {
 			system("cls");	
 			break;
 		}
-            case 0: {
-                currentUser->saveCartToFile();
-                cout << "Cart saved. Logging out...\n";
-                system("pause");
-                system("cls");
-                return;  // Exit the function completely
-            }
+		
+			
+        case 0: {
+        	currentUser->saveCartToFile();
+            cout << "Cart saved. Logging out...\n";
             
-            default: {
-                cout << "Invalid choice! Please enter a number between 0-6.\n";
-                system("pause");
-                system("cls");
-                break;
-            }
-            
-            
-    	}
-	}
-}
-
-void categoryManagementMenu() {
-    CategoryStack categoryStack;
-    OperationStackCategory undoStack;
-    categoryStack.loadFromFile("category.txt");
-    
-    int choice;
-    do {
-        system("cls");
-        cout << "-----------------------------------------------\n"
-             << "           CATEGORY MANAGEMENT MENU            \n"
-             << "-----------------------------------------------\n"
-             << "1. Display Categories\n"
-             << "2. Add Category\n"
-             << "3. Delete Latest Category\n"
-             << "4. Undo Last Operation\n"
-             << "0. Exit and save to file\n"
-             << "Enter choice: ";
-        cin >> choice;
-        
-        switch(choice) {
-            case 1: {
-                system("cls");
-                categoryStack.display();
-                cout<<endl;
-                system("pause");
-                break;
-            }
-            
-            case 2: {
-                system("cls");
-                string categoryName;
-		        cout << HEADER << endl;
-				cout << YELLOW + "                   ADD Category               " + RESET << endl;
-				cout << HEADER << endl;	
-                cout << "Enter new category name: ";
-                cin >> categoryName;
-                
-                if (categoryStack.IsCategoryTaken(categoryName)) {
-                    cout << "Category already exists!\n";
-                } else {
-                    categoryStack.push(categoryName);
-                    undoStack.push({"remove", categoryName});
-                    cout << "Category added successfully!\n";
-                    
-                }
-                cout<<endl;
-                system("pause");
-                break;
-            }
-            
-            case 3: {
-                system("cls");
-                cout << HEADER << endl;
-				cout << YELLOW + "                   DELETE Latest Category               " + RESET << endl;
-				cout << HEADER << endl;	
-				string deletedCategory = categoryStack.pop();
-	            
-				cout<<"Deleted category : "<<deletedCategory<<endl;
-				CategoryRecord record = {"add", deletedCategory};
-	            undoStack.push(record);
-	            cout<<endl;
-                system("pause");
-                break;
-            }
-            
-            case 4: {  // Undo Operation
-	            if (!undoStack.empty()) {
-	                CategoryRecord record = undoStack.pop();
-	
-	                if (record.type == "add") {
-	                    categoryStack.push(record.category);
-	                    cout << "Undo completed: Restored category\n" << endl;	            
-			          	
-
-			          	categoryStack.display();
-	                } 
-	                else if (record.type == "remove") {
-	                    categoryStack.pop();	 
-						cout << "Undo completed: Remove latest added category\n" << endl;           
-
-			          	categoryStack.display();   	                 
-	                }
-	                
-	            } else {
-	                cout << "No operations to undo!\n";
-	            }
-			          	
-				system("pause");
-				system("cls");
-					 	            
-	            break;
-	        }
-	        case 0: {
-	        	cout <<"Exiting, stack save to file"<<endl;
-				system("pause");
-				system("cls");
-	        	categoryStack.saveToFile("category.txt");
-				break;
-			}
+			system("pause");
+			system("cls");            
+            break;   
+		}
+ 
+        default:
+            cout << "Invalid choice!";
         }
+        
     } while (choice != 0);
     
 }
 
 void adminMenu(Admin* currentAdmin) {
-	
+    const int MAX_USERS = 100;
+    const int MAX_STAFF = 50;
+    const int MAX_ADMIN = 20;
+
     User users[MAX_USERS];
     int count = 0;
 
-	Staff staffs[MAX_STAFF];
-	int staffCount = 0 ;
+    Staff staffs[MAX_STAFF];
+    int staffCount = 0;
 
-	Admin admins[MAX_ADMIN];
-	int adminCount = 0 ;
+    Admin admins[MAX_ADMIN];
+    int adminCount = 0;
 
     int choice;
 
-    User::loadUsers(users, count);
-    Staff::loadStaffs(staffs, staffCount);
-	Admin::loadAdmins(admins, adminCount);
-	
-    do {
-		system("cls");
+    // Load data with exception handling
+    try {
+        User::loadUsers(users, count);
+    } catch (const exception& e) {
+        cerr << "Error loading users: " << e.what() << endl;
+    }
 
-		cout << YELLOW;
-		cout << "-----------------------------------------------" << endl;
-		cout << "                  ADMIN MENU                   " << endl;
-		cout << "-----------------------------------------------" << endl;	
-		cout << RESET;
-		
-		cout << "Hi " << currentAdmin->name << ", ready for your tasks today?" << endl << endl;
-		
-		cout << GREEN;
-		cout << "+----------------------+----------------------+\n";
-		cout << "| User Management      | Staff Management     |\n";
-		cout << "+----------------------+----------------------+\n";
-		cout << "|  1. View Users       | 5. View Staff        |\n";
-		cout << "|  2. Add User         | 6. Add Staff         |\n";
-		cout << "|  3. Edit User        | 7. Edit Staff        |\n";
-		cout << "|  4. Delete User      | 8. Delete Staff      |\n";
-		cout << "|                      |                      |\n";
-		cout << "+----------------------+----------------------+\n";
-		cout << "| Admin Management     | Other Option         |\n";
-		cout << "+----------------------+----------------------+\n";
-		cout << "|  9. View Admins      | 0. Back to Main Menu |\n";
-		cout << "| 10. Add Admin        |                      |\n";
-		cout << "| 11. Edit Admin       |                      |\n";
-		cout << "| 12. Delete Admin     |                      |\n";
-		cout << "|                      |                      |\n";
-		cout << "+----------------------+----------------------+\n";
-		cout << RESET;
-		
-		cout << "\nEnter your choice: ";
-        cin >> choice;
-		
-		
-        switch (choice) {
-            case 1: 
-            	system("cls");
-				User::viewUsers(users, count); 
-				system("pause");
-				
-				break;
+    try {
+        Staff::loadStaffs(staffs, staffCount);
+    } catch (const exception& e) {
+        cerr << "Error loading staff: " << e.what() << endl;
+    }
+
+    try {
+        Admin::loadAdmins(admins, adminCount);
+    } catch (const exception& e) {
+        cerr << "Error loading admins: " << e.what() << endl;
+    }
+
+    do {
+        system("cls");
+        cout << YELLOW;
+        cout << "-----------------------------------------------" << endl;
+        cout << "                  ADMIN MENU                   " << endl;
+        cout << "-----------------------------------------------" << endl;    
+        cout << "Hi " << currentAdmin->name << ", ready for your tasks today?" << endl << endl;
+        
+        cout << GREEN;
+        cout << "+----------------------+----------------------+" << endl;
+        cout << "| User Management      | Staff Management     |" << endl;
+        cout << "+----------------------+----------------------+" << endl;
+        cout << "|  1. View Users       | 5. View Staff        |" << endl;
+        cout << "|  2. Add User         | 6. Add Staff         |" << endl;
+        cout << "|  3. Edit User        | 7. Edit Staff        |" << endl;
+        cout << "|  4. Delete User      | 8. Delete Staff      |" << endl;
+        cout << "|                      |                      |" << endl;
+        cout << "+----------------------+----------------------+" << endl;
+        cout << "| Admin Management     | Other Option         |" << endl;
+        cout << "+----------------------+----------------------+" << endl;
+        cout << "|  9. View Admins      | 0. Back to Main Menu |" << endl;
+        cout << "| 10. Add Admin        |                      |" << endl;
+        cout << "| 11. Edit Admin       |                      |" << endl;
+        cout << "| 12. Delete Admin     |                      |" << endl;
+        cout << "|                      |                      |" << endl;
+        cout << "+----------------------+----------------------+" << endl;
+        
+        // Robust input validation
+        string input;
+        bool validChoice = false;
+        bool firstAttempt = true;
+        
+        while (!validChoice) {
+            if (firstAttempt) {
+                cout << "\nEnter your choice (0-12): ";
+                firstAttempt = false;
+            } else {
+                cout << "Please try again. \nEnter choice (0-12): ";
+            }
             
-			case 2: 
-				system("cls");
-				User::viewUsers(users, count); 
-				User::addUser(users, count); 	
-				system("pause");
-						
-				break;
-				
-            case 3:
-            	system("cls");
-            	User::viewUsers(users, count); 
-				User::editUser(users, count); 
-				system("pause");
-				
-				break;
+            getline(cin, input);
             
-			case 4:
-				system("cls");
-				User::viewUsers(users, count); 
-				User::deleteUser(users, count); 
-				system("pause");
-				
-				break;
+            // Trim whitespace
+            input.erase(0, input.find_first_not_of(" \t"));
+            input.erase(input.find_last_not_of(" \t") + 1);
             
-            case 5:
-            	system("cls");
-                Staff::viewStaffs(staffs, staffCount);
-                system("pause");
-                break;
-                
-            case 6:
-            	system("cls");
-            	Staff::viewStaffs(staffs, staffCount);
-                Staff::addStaff(staffs, staffCount);
-				system("pause");
-				
-                break;
-                
-            case 7:
-            	system("cls");
-            	Staff::viewStaffs(staffs, staffCount);
-                Staff::editStaff(staffs, staffCount);
-                system("pause"); 
-                
-                break;
-                
-            case 8:
-            	system("cls");
-            	Staff::viewStaffs(staffs, staffCount);            	
-                Staff::deleteStaff(staffs, staffCount); 
-                system("pause");
-                
-                break;
-                
-            case 9:
-            	system("cls");
-                Admin::viewAdmins(admins, adminCount);
-                system("pause");
-                break;
-                
-            case 10:
-            	system("cls");
-                Admin::viewAdmins(admins, adminCount);
-                Admin::addAdmin(admins, adminCount); 
-                system("pause");
-                
-                break;
-                
-            case 11: 
-            	system("cls");
-                Admin::viewAdmins(admins, adminCount);
-                Admin::editAdmin(admins, adminCount); 
-                system("pause");
-                
-                break;
-                
-            case 12: 
-            	system("cls");
-                Admin::viewAdmins(admins, adminCount);
-                Admin::deleteAdmin(admins, adminCount); 
-                system("pause");
-                
-                break;
-				
-			case 0: 
-				cout << "Redirecting to the Main Menu..." << endl;
-				system("pause");
-				system("cls");
-				
-				break;
-            default: cout << "Invalid choice.\n";
+            if (input.empty()) {
+                cout << "Error: Input cannot be empty. ";
+                continue;
+            }
+            
+            try {
+                choice = stoi(input);
+                if (choice >= 0 && choice <= 12) {
+                    validChoice = true;
+                } else {
+                    cout << "Error: Please enter a number between 0 and 12. ";
+                }
+            } catch (const invalid_argument&) {
+                cout << "Invalid input '" << input << "'. Please enter a numeric value. ";
+            } catch (const out_of_range&) {
+                cout << "Number too large. Please enter a value between 0 and 12. ";
+            }
         }
-    } while (choice != 0);	
+
+        try {
+            switch (choice) {
+                case 1: 
+                    system("cls");
+                    try {
+                        User::viewUsers(users, count);
+                    } catch (const exception& e) {
+                        cerr << "Error viewing users: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                
+                case 2: 
+                    system("cls");
+                    try {
+                        User::viewUsers(users, count);
+                        User::addUser(users, count);
+                    } catch (const exception& e) {
+                        cerr << "Error adding user: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 3:
+                    system("cls");
+                    try {
+                        User::viewUsers(users, count);
+                        User::editUser(users, count);
+                    } catch (const exception& e) {
+                        cerr << "Error editing user: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                
+                case 4:
+                    system("cls");
+                    try {
+                        User::viewUsers(users, count);
+                        User::deleteUser(users, count);
+                    } catch (const exception& e) {
+                        cerr << "Error deleting user: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                
+                case 5:
+                    system("cls");
+                    try {
+                        Staff::viewStaffs(staffs, staffCount);
+                    } catch (const exception& e) {
+                        cerr << "Error viewing staff: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 6:
+                    system("cls");
+                    try {
+                        Staff::viewStaffs(staffs, staffCount);
+                        Staff::addStaff(staffs, staffCount);
+                    } catch (const exception& e) {
+                        cerr << "Error adding staff: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 7:
+                    system("cls");
+                    try {
+                        Staff::viewStaffs(staffs, staffCount);
+                        Staff::editStaff(staffs, staffCount);
+                    } catch (const exception& e) {
+                        cerr << "Error editing staff: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 8:
+                    system("cls");
+                    try {
+                        Staff::viewStaffs(staffs, staffCount);
+                        Staff::deleteStaff(staffs, staffCount);
+                    } catch (const exception& e) {
+                        cerr << "Error deleting staff: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 9:
+                    system("cls");
+                    try {
+                        Admin::viewAdmins(admins, adminCount);
+                    } catch (const exception& e) {
+                        cerr << "Error viewing admins: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 10:
+                    system("cls");
+                    try {
+                        Admin::viewAdmins(admins, adminCount);
+                        Admin::addAdmin(admins, adminCount);
+                    } catch (const exception& e) {
+                        cerr << "Error adding admin: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 11: 
+                    system("cls");
+                    try {
+                        Admin::viewAdmins(admins, adminCount);
+                        Admin::editAdmin(admins, adminCount);
+                    } catch (const exception& e) {
+                        cerr << "Error editing admin: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 12: 
+                    system("cls");
+                    try {
+                        Admin::viewAdmins(admins, adminCount);
+                        Admin::deleteAdmin(admins, adminCount);
+                    } catch (const exception& e) {
+                        cerr << "Error deleting admin: " << e.what() << endl;
+                    }
+                    system("pause");
+                    break;
+                    
+                case 0: 
+                    cout << "Redirecting to the Main Menu..." << endl;
+                    system("pause");
+                    system("cls");
+                    break;
+            }
+        } catch (const exception& e) {
+            cerr << "Operation failed: " << e.what() << endl;
+            system("pause");
+        }
+    } while (choice != 0);
 }
 
 // Menu-driven program
@@ -3580,9 +3811,6 @@ int main() {
 				        int newID = 1 + getMaxIdFromFile("users.txt");
 				        file << newID << "," << username << "," << password << "\n";
 				        cout << "Registration saved!\n";
-				        
-				        string filename = "user_" + to_string(newID) + ".txt";
-        				ofstream outfile(filename);
 				    }
 				    system("pause");
 				    system("cls");
@@ -3614,8 +3842,6 @@ int main() {
 
 	            } else {
 	                cout << "Login failed: Incorrect username or password.\n";
-	                system("pause");
-	                system("cls");
 	            }
 	            
 	            break;
