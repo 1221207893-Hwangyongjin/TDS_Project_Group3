@@ -1624,58 +1624,42 @@ public:
             loadCategories(); // Reload if categories are empty
         }
     
-        int orderCounts[MAX_CATEGORIES] = {0};
-        int itemQuantities[MAX_CATEGORIES] = {0};
-        double revenues[MAX_CATEGORIES] = {0.0};
+	    int itemQuantities[MAX_CATEGORIES] = {0};
+	    double revenues[MAX_CATEGORIES] = {0.0};
+ 
     
-        for (int i = 0; i < itemCount; i++) {
-            for (int j = 0; j < categoryCount; j++) {
-                if (items[i].category == categories[j]) {
-                    itemQuantities[j] += items[i].quantity;
-                    revenues[j] += items[i].unitPrice * items[i].quantity;
-                    
-                    // Check if this is a new order for the category
-                    bool isNewOrder = true;
-                    for (int k = 0; k < i; k++) {
-                        if (items[k].orderId == items[i].orderId) {
-                            isNewOrder = false;
-                            break;
-                        }
-                    }
-                    if (isNewOrder) {
-                        orderCounts[j]++;
-                    }
-                    break;
-                }
-            }
-        }
+	    for (int i = 0; i < itemCount; i++) {
+	        for (int j = 0; j < categoryCount; j++) {
+	            if (items[i].category == categories[j]) {
+	                itemQuantities[j] += items[i].quantity;
+	                revenues[j] += items[i].unitPrice * items[i].quantity;
+	                break;
+	            }
+	        }
+	    }
 
         cout <<"\n CATEGORY SALES REPORT:\n";
-	    cout << BLUE << "+------------------+---------+---------+------------+\n";
-	    cout << "| Category         | Orders  | Items   | Revenue    |\n";
-	    cout << "+------------------+---------+---------+------------+\n" << RESET;
+	    cout << BLUE << "+------------------+---------+------------+\n";
+	    cout << "| Category         | Items   | Revenue    |\n";
+	    cout << "+------------------+---------+------------+\n" << RESET;
         
-        int totalOrders = 0;
         int totalItems = 0;
         double totalRevenue = 0.0;
     
 	    for (int i = 0; i < categoryCount; i++) {
 	        cout << "| " << left << setw(16) << categories[i] 
-	             << " | " << left << setw(7) << orderCounts[i] 
 	             << " | " << setw(7) << itemQuantities[i] 
 	             << " | RM" << right << setw(8) << fixed << setprecision(2) << revenues[i] << " |\n";
             
-            totalOrders += orderCounts[i];
             totalItems += itemQuantities[i];
             totalRevenue += revenues[i];
         }
     
-	    cout << "+------------------+---------+---------+------------+\n";
+	    cout << "+------------------+---------+------------+\n";
 	    cout << "| " << left << setw(16) << "Total" 
-	         << " | " << left << setw(7) << totalOrders 
 	         << " | " << setw(7) << totalItems 
 	         << " | RM" << right << setw(8) << totalRevenue << " |\n";
-	    cout << "+------------------+---------+---------+------------+\n\n";
+	    cout << "+------------------+---------+------------+\n\n";
     }
     
     // Displays report by payment method
