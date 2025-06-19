@@ -65,7 +65,7 @@ string hidePasswordCanEmpty(const string& prompt);
 void basicStaffMenu(ADTstack &mainStack);
 void advanceStaffMenu(ADTstack &st);
 void staffMenu(Staff* currentStaff);
-void userMenu(User* currentUser);
+void userMenu(User* currentUser, bool firstLoadUserCart);
 void adminMenu(Admin* currentAdmin);
 
 //struct Product;
@@ -1464,7 +1464,7 @@ public:
         cout << "User ID not found.\n";
     }
 
-    friend void userMenu(User* currentUser);
+    friend void userMenu(User* currentUser, bool firstLoadUserCart);
     
 };
 
@@ -3062,14 +3062,19 @@ void staffMenu(Staff* currentStaff) {
 	}while (choice != 0);
 }
 
-void userMenu(User* currentUser) {
+void userMenu(User* currentUser, bool firstLoadUserCart) {
     system("cls");
     
     ADTstack productStack;
 	productStack.loadFromFile("products.txt");
-	bool firstLoad = true; //avoid reload the file to cart
-    int choice;
 
+    int choice;
+    
+	if (firstLoadUserCart) {
+		currentUser->loadCartFromFile();
+		firstLoadUserCart = false;
+	}
+			
 	while(true){
 	
 
@@ -3182,7 +3187,7 @@ void userMenu(User* currentUser) {
 		                    } 
 		                    else if (tolower(keepBuying) == 'n') {
 		                        system("cls");
-		                        return userMenu(currentUser);
+		                        return userMenu(currentUser, firstLoadUserCart);
 		                    }
 		                    else {
 		                        cout << "Invalid input! Please enter 'y' or 'n'.\n";
@@ -3308,7 +3313,7 @@ void userMenu(User* currentUser) {
 									                    } 
 									                    else if (tolower(keepBuying) == 'n') {
 									                        system("cls");
-									                        return userMenu(currentUser);
+									                        return userMenu(currentUser, firstLoadUserCart);
 									                    }
 									                    else {
 									                        cout << "Invalid input! Please enter 'y' or 'n'.\n";
@@ -3351,11 +3356,7 @@ void userMenu(User* currentUser) {
 			
 			case 3: {
 				system("cls");
-			    if (firstLoad) {
-			        currentUser->loadCartFromFile();
-			        firstLoad = false;
-			    }
-			
+
 			    while (true) {
 			        currentUser->displayCart();
 			
@@ -4095,7 +4096,8 @@ int main() {
 	            
 	            if (currentUser) {
 	                // if login success, go to the User Menu
-	                userMenu(currentUser);		    
+	                bool firstLoadUserCart = true;
+	                userMenu(currentUser, firstLoadUserCart);		    
 				    delete currentUser; 
 
 	            } else {
