@@ -1088,7 +1088,7 @@ public:
     header.timestamp = getCurrentTime();
     saveOrderHeader(header);
 
-    // ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â¾ Print receipt header before processing cart
+    // Print receipt header before processing cart
     cout << "\nCheckout completed!\n" << endl;
     cout << "========================  Receipt  =========================" << endl;
     cout << "Order ID       : " << orderId << endl;
