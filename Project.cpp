@@ -1,7 +1,7 @@
 /* done
 Group 3 - Swimming Attire System
 Developed for TDS4223 Project
-aaaaa
+
 member1 : Soh Yong Seng
 member2 : Hwang Yong Jin
 member3 : Chan Jun Yup
