@@ -1354,10 +1354,7 @@ public:
         cout << "Enter user ID to edit: ";
         getline(cin, input);
         
-        // Trim whitespace
-        input.erase(0, input.find_first_not_of(" \t"));
-        input.erase(input.find_last_not_of(" \t") + 1);
-        
+
         if (input.empty()) {
             cout << "Error: ID cannot be empty.\n\n";
             continue;
@@ -2875,6 +2872,7 @@ void staffMenu(Staff* currentStaff) {
 		cout << "|                                                              | 5. Delete Latest Category      |\n";
 		cout << "|                                                              | 6. Undo Operation              |\n";
 		cout << "|                                                              | 7. Save Category To File       |\n";
+		cout << "|                                                                                               |\n";
 		cout << "+--------------------------------------------------------------+--------------------------------+\n";
 		cout << "|                           Report                             |           Other Option         |\n";
 		cout << "+--------------------------------------------------------------+--------------------------------+\n";
@@ -2900,9 +2898,6 @@ void staffMenu(Staff* currentStaff) {
 			
 			getline(cin, input);
 			
-			// Trim whitespace
-			input.erase(0, input.find_first_not_of(" \t"));
-			input.erase(input.find_last_not_of(" \t") + 1);
 			
 			if (input.empty()) {
 				cout << "Error: Input cannot be empty.\n\n";
@@ -2989,19 +2984,19 @@ void staffMenu(Staff* currentStaff) {
 	            if (!undoStack.empty()) {
 	                CategoryRecord record = undoStack.pop();
 					system("cls");
-	                if (record.type == "add") {
+	                
+					if (record.type == "add") {
 	                	
-	                    categoryStack.push(record.category);
-	                    cout << "Undo completed: Restored category\n" << endl;	            
+	                    categoryStack.push(record.category);          
 			          	
-
 			          	categoryStack.display();
+	                    cout << "Undo completed: Restored category: "  << BLUE << record.category << RESET <<endl;	  			          	
 	                } 
 	                else if (record.type == "remove") {
-	                    categoryStack.pop();	 
-						cout << "Undo completed: Remove latest added category\n" << endl;           
+	                    categoryStack.pop();	         
 
-			          	categoryStack.display();   	                 
+			          	categoryStack.display();
+						cout << "Undo completed: Remove latest added category: " << BLUE << record.category << RESET << endl;				                   
 	                }
 	                
 	            } else {
@@ -3825,9 +3820,6 @@ void adminMenu(Admin* currentAdmin) {
             
             getline(cin, input);
             
-            // Trim whitespace
-            input.erase(0, input.find_first_not_of(" \t"));
-            input.erase(input.find_last_not_of(" \t") + 1);
             
             if (input.empty()) {
                 cout << "Error: Input cannot be empty.\n\n";
@@ -3987,9 +3979,6 @@ int main() {
             
             getline(cin, input);
             
-            // Trim whitespace
-            input.erase(0, input.find_first_not_of(" \t"));
-            input.erase(input.find_last_not_of(" \t") + 1);
             
             if (input.empty()) {
                 cout << "Error: Input cannot be empty.\n\n";
